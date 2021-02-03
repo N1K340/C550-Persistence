@@ -15,17 +15,21 @@ local LIP = require("LIP")
 require "graphics"
 
 -- Variables
-local fsePersistenceSettings = {}
-
+local C550fsePersistenceSettings = {}
+local C550FSEP_Loaded = false
+local C550FSEPtimer = 3
+local C550FSEPStartTime = 0
+local C550FSEPready = false
 
 -- Datarefs
-dataref("HDG", "sim/flightmodel/position/psi", "writeable")
+dataref("SIM_TIME", "sim/time/total_running_time_sec")
+dataref("PRK_BRK", "sim/flightmodel/controls/parkbrake")
+dataref("ENG1_RUN", "sim/flightmodel/engine/ENGN_running", 0)
+dataref("ENG2_RUN", "sim/flightmodel/engine/ENGN_running", 1)
 
-dataref("PRK_BRK","sim/flightmodel/controls/parkbrake")
-dataref("ENG_RUN", "sim/flightmodel/engine/ENGN_running")
 
-function WritePersistenceData(fsePersistenceSettings)
-    LIP.save(AIRCRAFT_PATH .. "/fsePersistence.ini", fsePersistenceSettings)
+function WritePersistenceData(C550fsePersistenceSettings)
+    LIP.save(AIRCRAFT_PATH .. "/fsePersistence.ini", C550fsePersistenceSettings)
 end
 
 function SavePersistenceData()
@@ -148,8 +152,10 @@ function SavePersistenceData()
     local ADF1_PWR = get("sim/cockpit2/radios/actuators/adf1_power")
     local ADF2_PWR = get("sim/cockpit2/radios/actuators/adf2_power")
     local XPDR_MODE = get("sim/cockpit2/radios/actuators/transponder_mode")
+    local ENG1_RUN = get("sim/flightmodel/engine/ENGN_running", 0)
+    local ENG2_RUN = get("sim/flightmodel/engine/ENGN_running", 1)
 
-    fsePersistenceSettings = {
+    C550fsePersistenceSettings = {
         PersistenceData = {
             LYOKE = LYOKE,
             RYOKE = RYOKE,
@@ -257,144 +263,190 @@ function SavePersistenceData()
             ADF2_PWR = ADF2_PWR,
             XPDR_MODE = XPDR_MODE,
             DH = DH,
+            ENG1_RUN = ENG1_RUN,
+            ENG2_RUN = ENG2_RUN,
+
         }
     }
-    WritePersistenceData(fsePersistenceSettings)
-    print("FSE Persistence: Position data saved to " .. AIRCRAFT_PATH .. "fsePersistence.ini")
+    WritePersistenceData(C550fsePersistenceSettings)
+    print("FSE Persistence: Panel data saved to " .. AIRCRAFT_PATH .. "fsePersistence.ini")
 end
 
 function ParsePersistenceData()
-    fsePersistenceSettings = LIP.load(AIRCRAFT_PATH .. "/fsePersistence.ini")
+    C550fsePersistenceSettings = LIP.load(AIRCRAFT_PATH .. "/fsePersistence.ini")
 
-    set("thranda/cockpit/actuators/HideYokeL", fsePersistenceSettings.PersistenceData.LYOKE)
-    set("thranda/cockpit/actuators/HideYokeR", fsePersistenceSettings.PersistenceData.RYOKE) -- Right Yoke
-    set("thranda/cockpit/animations/ArmRestLR", fsePersistenceSettings.PersistenceData.LARM) -- Left Arm Rests
-    set("thranda/cockpit/animations/ArmRestRL", fsePersistenceSettings.PersistenceData.RARM) -- Right Arm Rest
-    set("sim/cockpit/electrical/gpu_on", fsePersistenceSettings.PersistenceData.GPU)
-    set("thranda/views/WindowRefl", fsePersistenceSettings.PersistenceData.WREFL) -- Window Reflections
-    set("thranda/views/InstRefl", fsePersistenceSettings.PersistenceData.IREFL) -- Instrument Reflections
-    set("thranda/views/staticelements", fsePersistenceSettings.PersistenceData.COVERS) -- Pitot Covers
-    set_array("sim/cockpit2/switches/door_open", 0, fsePersistenceSettings.PersistenceData.DOOR0) -- 0 Main, 1 Left Bag, 2 Right Bag
-    set_array("sim/cockpit2/switches/door_open", 1, fsePersistenceSettings.PersistenceData.DOOR1) -- 0 Main, 1 Left Bag, 2 Right Bag
-    set_array("sim/cockpit2/switches/door_open", 2, fsePersistenceSettings.PersistenceData.DOOR2) -- 0 Main, 1 Left Bag, 2 Right Bag
-    set("sim/cockpit2/clock_timer/timer_mode", fsePersistenceSettings.PersistenceData.CLK_MODE)
-    set("sim/cockpit2/radios/actuators/audio_com_selection_man", fsePersistenceSettings.PersistenceData.XMT) -- Transmit Selector
-    set("sim/cockpit2/radios/actuators/audio_selection_com1", fsePersistenceSettings.PersistenceData.C1_RCV) -- Com 1 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_com2", fsePersistenceSettings.PersistenceData.C2_RCV) -- Com 2 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_adf1", fsePersistenceSettings.PersistenceData.ADF1_RCV) -- ADF 1 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_adf1", fsePersistenceSettings.PersistenceData.ADF2_RCV) -- ADF 2 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_nav1", fsePersistenceSettings.PersistenceData.NAV1_RCV) -- NAV 1 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_nav2", fsePersistenceSettings.PersistenceData.NAV2_RCV) -- NAV 2 Receives
-    set("sim/cockpit2/radios/actuators/audio_dme_enabled", fsePersistenceSettings.PersistenceData.DME1_RCV) -- DME Recieve
-    set("sim/cockpit2/radios/actuators/audio_marker_enabled", fsePersistenceSettings.PersistenceData.MRKR_RCV) -- Marker Recieve
+    set("thranda/cockpit/actuators/HideYokeL", C550fsePersistenceSettings.PersistenceData.LYOKE)
+    set("thranda/cockpit/actuators/HideYokeR", C550fsePersistenceSettings.PersistenceData.RYOKE) -- Right Yoke
+    set("thranda/cockpit/animations/ArmRestLR", C550fsePersistenceSettings.PersistenceData.LARM) -- Left Arm Rests
+    set("thranda/cockpit/animations/ArmRestRL", C550fsePersistenceSettings.PersistenceData.RARM) -- Right Arm Rest
+    set("sim/cockpit/electrical/gpu_on", C550fsePersistenceSettings.PersistenceData.GPU)
+    set("thranda/views/WindowRefl", C550fsePersistenceSettings.PersistenceData.WREFL) -- Window Reflections
+    set("thranda/views/InstRefl", C550fsePersistenceSettings.PersistenceData.IREFL) -- Instrument Reflections
+    set("thranda/views/staticelements", C550fsePersistenceSettings.PersistenceData.COVERS) -- Pitot Covers
+    set_array("sim/cockpit2/switches/door_open", 0, C550fsePersistenceSettings.PersistenceData.DOOR0) -- 0 Main, 1 Left Bag, 2 Right Bag
+    set_array("sim/cockpit2/switches/door_open", 1, C550fsePersistenceSettings.PersistenceData.DOOR1) -- 0 Main, 1 Left Bag, 2 Right Bag
+    set_array("sim/cockpit2/switches/door_open", 2, C550fsePersistenceSettings.PersistenceData.DOOR2) -- 0 Main, 1 Left Bag, 2 Right Bag
+    set("sim/cockpit2/clock_timer/timer_mode", C550fsePersistenceSettings.PersistenceData.CLK_MODE)
+    set("sim/cockpit2/radios/actuators/audio_com_selection_man", C550fsePersistenceSettings.PersistenceData.XMT) -- Transmit Selector
+    set("sim/cockpit2/radios/actuators/audio_selection_com1", C550fsePersistenceSettings.PersistenceData.C1_RCV) -- Com 1 Receives
+    set("sim/cockpit2/radios/actuators/audio_selection_com2", C550fsePersistenceSettings.PersistenceData.C2_RCV) -- Com 2 Receives
+    set("sim/cockpit2/radios/actuators/audio_selection_adf1", C550fsePersistenceSettings.PersistenceData.ADF1_RCV) -- ADF 1 Receives
+    set("sim/cockpit2/radios/actuators/audio_selection_adf1", C550fsePersistenceSettings.PersistenceData.ADF2_RCV) -- ADF 2 Receives
+    set("sim/cockpit2/radios/actuators/audio_selection_nav1", C550fsePersistenceSettings.PersistenceData.NAV1_RCV) -- NAV 1 Receives
+    set("sim/cockpit2/radios/actuators/audio_selection_nav2", C550fsePersistenceSettings.PersistenceData.NAV2_RCV) -- NAV 2 Receives
+    set("sim/cockpit2/radios/actuators/audio_dme_enabled", C550fsePersistenceSettings.PersistenceData.DME1_RCV) -- DME Recieve
+    set("sim/cockpit2/radios/actuators/audio_marker_enabled", C550fsePersistenceSettings.PersistenceData.MRKR_RCV) -- Marker Recieve
 
-    set("thranda/actuators/VoltSelAct", fsePersistenceSettings.PersistenceData.VOLT_SEL) -- Volt Selector
-    set("thranda/annunciators/AnnunTestKnob", fsePersistenceSettings.PersistenceData.TEST_SEL) -- Test Selector
-    set_array("sim/cockpit/electrical/generator_on", 0, fsePersistenceSettings.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
-    set_array("sim/cockpit/electrical/generator_on", 1, fsePersistenceSettings.PersistenceData.GENR)
-    set("sim/cockpit/electrical/battery_on", fsePersistenceSettings.PersistenceData.BAT) -- Batt Switch
-    set("thranda/electrical/AC_InverterSwitch", fsePersistenceSettings.PersistenceData.INV) -- Inverter Switch
-    set("sim/cockpit/electrical/avionics_on", fsePersistenceSettings.PersistenceData.AVN) -- Avionics Switch
-    set_array("sim/cockpit/engine/fuel_pump_on", 0, fsePersistenceSettings.PersistenceData.BOOST_PMP1) -- Fuel Pumps, 0 Left, 1 Right
-    set_array("sim/cockpit/engine/fuel_pump_on", 1, fsePersistenceSettings.PersistenceData.BOOST_PMP2)
-    set_array("sim/cockpit/engine/igniters_on", 0, fsePersistenceSettings.PersistenceData.IGN1) -- Ignition 0 Left 1 Right
-    set_array("sim/cockpit/engine/igniters_on", 1, fsePersistenceSettings.PersistenceData.IGN2)
-    set("sim/cockpit2/ice/ice_pitot_heat_on_pilot", fsePersistenceSettings.PersistenceData.PIT_HT) -- Pitot Heat
-    set("sim/cockpit2/ice/ice_window_heat_on", fsePersistenceSettings.PersistenceData.WS_BLD) -- Window Bleed
-    set_array("sim/cockpit/switches/anti_ice_engine_air", 0, fsePersistenceSettings.PersistenceData.ENG_AI1) -- 0 Left 1 Right
-    set_array("sim/cockpit/switches/anti_ice_engine_air", 1, fsePersistenceSettings.PersistenceData.ENG_AI2)
-    set("sim/cockpit2/ice/ice_surface_boot_on", fsePersistenceSettings.PersistenceData.SURF_AI) 
-    set_array("sim/cockpit/gyros/gyr_free_slaved", 0, fsePersistenceSettings.PersistenceData.GYROSL) -- 0 LH Main, 1 LH Source
-    set_array("sim/cockpit/gyros/gyr_free_slaved", 1, fsePersistenceSettings.PersistenceData.GYROSR)
+    set("thranda/actuators/VoltSelAct", C550fsePersistenceSettings.PersistenceData.VOLT_SEL) -- Volt Selector
+    set("thranda/annunciators/AnnunTestKnob", C550fsePersistenceSettings.PersistenceData.TEST_SEL) -- Test Selector
+    set_array("sim/cockpit/electrical/generator_on", 0, C550fsePersistenceSettings.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
+    set_array("sim/cockpit/electrical/generator_on", 1, C550fsePersistenceSettings.PersistenceData.GENR)
+    set("sim/cockpit/electrical/battery_on", C550fsePersistenceSettings.PersistenceData.BAT) -- Batt Switch
+    set("thranda/electrical/AC_InverterSwitch", C550fsePersistenceSettings.PersistenceData.INV) -- Inverter Switch
+    set("sim/cockpit/electrical/avionics_on", C550fsePersistenceSettings.PersistenceData.AVN) -- Avionics Switch
+    set_array("sim/cockpit/engine/fuel_pump_on", 0, C550fsePersistenceSettings.PersistenceData.BOOST_PMP1) -- Fuel Pumps, 0 Left, 1 Right
+    set_array("sim/cockpit/engine/fuel_pump_on", 1, C550fsePersistenceSettings.PersistenceData.BOOST_PMP2)
+    set_array("sim/cockpit/engine/igniters_on", 0, C550fsePersistenceSettings.PersistenceData.IGN1) -- Ignition 0 Left 1 Right
+    set_array("sim/cockpit/engine/igniters_on", 1, C550fsePersistenceSettings.PersistenceData.IGN2)
+    set("sim/cockpit2/ice/ice_pitot_heat_on_pilot", C550fsePersistenceSettings.PersistenceData.PIT_HT) -- Pitot Heat
+    set("sim/cockpit2/ice/ice_window_heat_on", C550fsePersistenceSettings.PersistenceData.WS_BLD) -- Window Bleed
+    set_array("sim/cockpit/switches/anti_ice_engine_air", 0, C550fsePersistenceSettings.PersistenceData.ENG_AI1) -- 0 Left 1 Right
+    set_array("sim/cockpit/switches/anti_ice_engine_air", 1, C550fsePersistenceSettings.PersistenceData.ENG_AI2)
+    set("sim/cockpit2/ice/ice_surface_boot_on", C550fsePersistenceSettings.PersistenceData.SURF_AI) 
+    set_array("sim/cockpit/gyros/gyr_free_slaved", 0, C550fsePersistenceSettings.PersistenceData.GYROSL) -- 0 LH Main, 1 LH Source
+    set_array("sim/cockpit/gyros/gyr_free_slaved", 1, C550fsePersistenceSettings.PersistenceData.GYROSR)
 
     
-    set("thranda/fuel/CrossFeedLRSw", fsePersistenceSettings.PersistenceData.FUEL_SEL)
-    set("thranda/lights/RecogLights", fsePersistenceSettings.PersistenceData.RECOG)
-    set("sim/cockpit/electrical/strobe_lights_on", fsePersistenceSettings.PersistenceData.COLL)
-    set("sim/cockpit2/switches/navigation_lights_on", fsePersistenceSettings.PersistenceData.Nav_LT)
+    set("thranda/fuel/CrossFeedLRSw", C550fsePersistenceSettings.PersistenceData.FUEL_SEL)
+    set("thranda/lights/RecogLights", C550fsePersistenceSettings.PersistenceData.RECOG)
+    set("sim/cockpit/electrical/strobe_lights_on", C550fsePersistenceSettings.PersistenceData.COLL)
+    set("sim/cockpit2/switches/navigation_lights_on", C550fsePersistenceSettings.PersistenceData.Nav_LT)
 
-    set("sim/cockpit/autopilot/airspeed", fsePersistenceSettings.PersistenceData.SPD_BG) -- Speed Bug
-    set("sim/cockpit/switches/RMI_l_vor_adf_selector", fsePersistenceSettings.PersistenceData.RMI_L) -- Left RMI
-    set("sim/cockpit/switches/RMI_r_vor_adf_selector", fsePersistenceSettings.PersistenceData.RMI_R) -- Right RMI
+    set("sim/cockpit/autopilot/airspeed", C550fsePersistenceSettings.PersistenceData.SPD_BG) -- Speed Bug
+    set("sim/cockpit/switches/RMI_l_vor_adf_selector", C550fsePersistenceSettings.PersistenceData.RMI_L) -- Left RMI
+    set("sim/cockpit/switches/RMI_r_vor_adf_selector", C550fsePersistenceSettings.PersistenceData.RMI_R) -- Right RMI
 
-    set("sim/cockpit2/radios/actuators/DME_mode", fsePersistenceSettings.PersistenceData.DME_CH)
-    set("sim/cockpit/switches/DME_distance_or_time", fsePersistenceSettings.PersistenceData.DME_SEL)
-    set("sim/cockpit2/radios/actuators/dme_power", fsePersistenceSettings.PersistenceData.DME_PWR)
+    set("sim/cockpit2/radios/actuators/DME_mode", C550fsePersistenceSettings.PersistenceData.DME_CH)
+    set("sim/cockpit/switches/DME_distance_or_time", C550fsePersistenceSettings.PersistenceData.DME_SEL)
+    set("sim/cockpit2/radios/actuators/dme_power", C550fsePersistenceSettings.PersistenceData.DME_PWR)
 
-    set("sim/cockpit/misc/radio_altimeter_minimum", fsePersistenceSettings.PersistenceData.DH)
-    set("thranda/instruments/BaroUnits", fsePersistenceSettings.PersistenceData.BARO_UNIT)
-    set("sim/cockpit2/fuel/fuel_totalizer_sum_kg", fsePersistenceSettings.PersistenceData.FUEL_TTL)
+    set("sim/cockpit/misc/radio_altimeter_minimum", C550fsePersistenceSettings.PersistenceData.DH)
+    set("thranda/instruments/BaroUnits", C550fsePersistenceSettings.PersistenceData.BARO_UNIT)
+    set("sim/cockpit2/fuel/fuel_totalizer_sum_kg", C550fsePersistenceSettings.PersistenceData.FUEL_TTL)
 
-    set("thranda/knobs/N1_Dial", fsePersistenceSettings.PersistenceData.N1_Dial)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 1, fsePersistenceSettings.PersistenceData.FLOOD_LT)
-    set_array("sim/cockpit2/switches/generic_lights_switch", 30 ,fsePersistenceSettings.PersistenceData.PNL_LT)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 2, fsePersistenceSettings.PersistenceData.PNL_LFT , 3)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 3, fsePersistenceSettings.PersistenceData.PNL_CTR , 4)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 4, fsePersistenceSettings.PersistenceData.PNL_RT , 5)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 5, fsePersistenceSettings.PersistenceData.PNL_EL , 6)
-    set("sim/cockpit/switches/fasten_seat_belts", fsePersistenceSettings.PersistenceData.ST_BLT)
-    set("sim/cockpit2/switches/beacon_on", fsePersistenceSettings.PersistenceData.BCN)
-    set("thranda/lights/LandingLightLeft", fsePersistenceSettings.PersistenceData.L_LND)
-    set("thranda/lights/LandingLightRight", fsePersistenceSettings.PersistenceData.R_LND)
-    set("thranda/gear/AntiSkid", fsePersistenceSettings.PersistenceData.ASKID)
+    set("thranda/knobs/N1_Dial", C550fsePersistenceSettings.PersistenceData.N1_Dial)
+    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 1, C550fsePersistenceSettings.PersistenceData.FLOOD_LT)
+    set_array("sim/cockpit2/switches/generic_lights_switch", 30 ,C550fsePersistenceSettings.PersistenceData.PNL_LT)
+    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 2, C550fsePersistenceSettings.PersistenceData.PNL_LFT , 3)
+    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 3, C550fsePersistenceSettings.PersistenceData.PNL_CTR , 4)
+    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 4, C550fsePersistenceSettings.PersistenceData.PNL_RT , 5)
+    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 5, C550fsePersistenceSettings.PersistenceData.PNL_EL , 6)
+    set("sim/cockpit/switches/fasten_seat_belts", C550fsePersistenceSettings.PersistenceData.ST_BLT)
+    set("sim/cockpit2/switches/beacon_on", C550fsePersistenceSettings.PersistenceData.BCN)
+    set("thranda/lights/LandingLightLeft", C550fsePersistenceSettings.PersistenceData.L_LND)
+    set("thranda/lights/LandingLightRight", C550fsePersistenceSettings.PersistenceData.R_LND)
+    set("thranda/gear/AntiSkid", C550fsePersistenceSettings.PersistenceData.ASKID)
 
-    set("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm", fsePersistenceSettings.PersistenceData.PRESS_VVI)
-    set("sim/cockpit/pressure/cabin_altitude_set_m_msl", fsePersistenceSettings.PersistenceData.CAB_ALT)
-    set_array("thranda/BT", 22, fsePersistenceSettings.PersistenceData.TEMP_MAN)
-    set("thranda/pneumatic/CabinTempAct", fsePersistenceSettings.PersistenceData.TEMP_CTRL)
-    set("thranda/pneumatic/PressureSource", fsePersistenceSettings.PersistenceData.PRES_SRC)
-    set("thranda/pneumatic/AirFlowDistribution", fsePersistenceSettings.PersistenceData.FLOW_DIST)
+    set("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm", C550fsePersistenceSettings.PersistenceData.PRESS_VVI)
+    set("sim/cockpit/pressure/cabin_altitude_set_m_msl", C550fsePersistenceSettings.PersistenceData.CAB_ALT)
+    set_array("thranda/BT", 22, C550fsePersistenceSettings.PersistenceData.TEMP_MAN)
+    set("thranda/pneumatic/CabinTempAct", C550fsePersistenceSettings.PersistenceData.TEMP_CTRL)
+    set("thranda/pneumatic/PressureSource", C550fsePersistenceSettings.PersistenceData.PRES_SRC)
+    set("thranda/pneumatic/AirFlowDistribution", C550fsePersistenceSettings.PersistenceData.FLOW_DIST)
 
-    set("sim/cockpit2/controls/elevator_trim", fsePersistenceSettings.PersistenceData.TRIM)
-    set("sim/cockpit2/controls/speedbrake_ratio", fsePersistenceSettings.PersistenceData.SPD_BRK)
-    set("sim/cockpit2/controls/flap_ratio", fsePersistenceSettings.PersistenceData.FLP_HNDL)
-    set("sim/cockpit2/switches/jet_sync_mode", fsePersistenceSettings.PersistenceData.FAN_SYNC)
+    set("sim/cockpit2/controls/elevator_trim", C550fsePersistenceSettings.PersistenceData.TRIM)
+    set("sim/cockpit2/controls/speedbrake_ratio", C550fsePersistenceSettings.PersistenceData.SPD_BRK)
+    set("sim/cockpit2/controls/flap_ratio", C550fsePersistenceSettings.PersistenceData.FLP_HNDL)
+    set("sim/cockpit2/switches/jet_sync_mode", C550fsePersistenceSettings.PersistenceData.FAN_SYNC)
 
-    set("sim/cockpit/radios/nav1_obs_degm", fsePersistenceSettings.PersistenceData.CRS1)
-    set("sim/cockpit/autopilot/heading_mag", fsePersistenceSettings.PersistenceData.HDG)
-    set("sim/cockpit2/autopilot/vvi_dial_fpm", fsePersistenceSettings.PersistenceData.VS)
-    set("sim/cockpit2/autopilot/altitude_dial_ft", fsePersistenceSettings.PersistenceData.APA)
+    set("sim/cockpit/radios/nav1_obs_degm", C550fsePersistenceSettings.PersistenceData.CRS1)
+    set("sim/cockpit/autopilot/heading_mag", C550fsePersistenceSettings.PersistenceData.HDG)
+    set("sim/cockpit2/autopilot/vvi_dial_fpm", C550fsePersistenceSettings.PersistenceData.VS)
+    set("sim/cockpit2/autopilot/altitude_dial_ft", C550fsePersistenceSettings.PersistenceData.APA)
 
-    set("thranda/ice/WindshieldIceL", fsePersistenceSettings.PersistenceData.L_WS)
-    set("thranda/ice/WindshieldIceR", fsePersistenceSettings.PersistenceData.R_WS)
-    set_array("thranda/BT", 23, fsePersistenceSettings.PersistenceData.CAB_FAN1)
-    set_array("thranda/BT", 24, fsePersistenceSettings.PersistenceData.CAB_FOG)
-    set("thranda/pneumatic/AC", fsePersistenceSettings.PersistenceData.AC)
-    set("thranda/pneumatic/BlowerIntensity", fsePersistenceSettings.PersistenceData.BLWR)
-    set("thranda/pneumatic/CabinVent", fsePersistenceSettings.PersistenceData.CAB_VNT)
-    set("thranda/pneumatic/CabinFan", fsePersistenceSettings.PersistenceData.CAB_FAN2)
+    set("thranda/ice/WindshieldIceL", C550fsePersistenceSettings.PersistenceData.L_WS)
+    set("thranda/ice/WindshieldIceR", C550fsePersistenceSettings.PersistenceData.R_WS)
+    set_array("thranda/BT", 23, C550fsePersistenceSettings.PersistenceData.CAB_FAN1)
+    set_array("thranda/BT", 24, C550fsePersistenceSettings.PersistenceData.CAB_FOG)
+    set("thranda/pneumatic/AC", C550fsePersistenceSettings.PersistenceData.AC)
+    set("thranda/pneumatic/BlowerIntensity", C550fsePersistenceSettings.PersistenceData.BLWR)
+    set("thranda/pneumatic/CabinVent", C550fsePersistenceSettings.PersistenceData.CAB_VNT)
+    set("thranda/pneumatic/CabinFan", C550fsePersistenceSettings.PersistenceData.CAB_FAN2)
 
-    set("sim/cockpit/radios/com1_freq_hz", fsePersistenceSettings.PersistenceData.COM1_ACT)
-    set("sim/cockpit/radios/com1_stdby_freq_hz", fsePersistenceSettings.PersistenceData.COM1_STB)
-    set("sim/cockpit/radios/com2_freq_hz", fsePersistenceSettings.PersistenceData.COM2_ACT)
-    set("sim/cockpit/radios/com2_stdby_freq_hz", fsePersistenceSettings.PersistenceData.COM2_STB)
-    set("sim/cockpit/radios/nav1_freq_hz", fsePersistenceSettings.PersistenceData.NAV1_ACT)
-    set("sim/cockpit/radios/nav1_stdby_freq_hz", fsePersistenceSettings.PersistenceData.NAV1_STB)
-    set("sim/cockpit/radios/nav1_freq_hz", fsePersistenceSettings.PersistenceData.NAV2_ACT)
-    set("sim/cockpit/radios/nav1_stdby_freq_hz", fsePersistenceSettings.PersistenceData.NAV2_STB)
-    set("sim/cockpit/radios/adf1_freq_hz", fsePersistenceSettings.PersistenceData.ADF1_ACT)
-    set("sim/cockpit/radios/adf1_stdby_freq_hz", fsePersistenceSettings.PersistenceData.ADF1_STB)
-    set("sim/cockpit/radios/adf2_freq_hz", fsePersistenceSettings.PersistenceData.ADF2_ACT)
-    set("sim/cockpit/radios/adf2_stdby_freq_hz", fsePersistenceSettings.PersistenceData.ADF2_STB)  
-    set("sim/cockpit/radios/transponder_code", fsePersistenceSettings.PersistenceData.XPDR_COD)
+    set("sim/cockpit/radios/com1_freq_hz", C550fsePersistenceSettings.PersistenceData.COM1_ACT)
+    set("sim/cockpit/radios/com1_stdby_freq_hz", C550fsePersistenceSettings.PersistenceData.COM1_STB)
+    set("sim/cockpit/radios/com2_freq_hz", C550fsePersistenceSettings.PersistenceData.COM2_ACT)
+    set("sim/cockpit/radios/com2_stdby_freq_hz", C550fsePersistenceSettings.PersistenceData.COM2_STB)
+    set("sim/cockpit/radios/nav1_freq_hz", C550fsePersistenceSettings.PersistenceData.NAV1_ACT)
+    set("sim/cockpit/radios/nav1_stdby_freq_hz", C550fsePersistenceSettings.PersistenceData.NAV1_STB)
+    set("sim/cockpit/radios/nav1_freq_hz", C550fsePersistenceSettings.PersistenceData.NAV2_ACT)
+    set("sim/cockpit/radios/nav1_stdby_freq_hz", C550fsePersistenceSettings.PersistenceData.NAV2_STB)
+    set("sim/cockpit/radios/adf1_freq_hz", C550fsePersistenceSettings.PersistenceData.ADF1_ACT)
+    set("sim/cockpit/radios/adf1_stdby_freq_hz", C550fsePersistenceSettings.PersistenceData.ADF1_STB)
+    set("sim/cockpit/radios/adf2_freq_hz", C550fsePersistenceSettings.PersistenceData.ADF2_ACT)
+    set("sim/cockpit/radios/adf2_stdby_freq_hz", C550fsePersistenceSettings.PersistenceData.ADF2_STB)  
+    set("sim/cockpit/radios/transponder_code", C550fsePersistenceSettings.PersistenceData.XPDR_COD)
 
-    set("sim/cockpit2/radios/actuators/com1_power", fsePersistenceSettings.PersistenceData.COM1_PWR)
-    set("sim/cockpit2/radios/actuators/com2_power", fsePersistenceSettings.PersistenceData.COM2_PWR)
-    set("sim/cockpit2/radios/actuators/nav1_power", fsePersistenceSettings.PersistenceData.NAV1_PWR)
-    set("sim/cockpit2/radios/actuators/nav2_power", fsePersistenceSettings.PersistenceData.NAV2_PWR)
-    set("sim/cockpit2/radios/actuators/adf1_power", fsePersistenceSettings.PersistenceData.ADF1_PWR)
-    set("sim/cockpit2/radios/actuators/adf2_power", fsePersistenceSettings.PersistenceData.ADF2_PWR)
-    set("sim/cockpit2/radios/actuators/transponder_mode", fsePersistenceSettings.PersistenceData.XPDR_MODE)
+    set("sim/cockpit2/radios/actuators/com1_power", C550fsePersistenceSettings.PersistenceData.COM1_PWR)
+    set("sim/cockpit2/radios/actuators/com2_power", C550fsePersistenceSettings.PersistenceData.COM2_PWR)
+    set("sim/cockpit2/radios/actuators/nav1_power", C550fsePersistenceSettings.PersistenceData.NAV1_PWR)
+    set("sim/cockpit2/radios/actuators/nav2_power", C550fsePersistenceSettings.PersistenceData.NAV2_PWR)
+    set("sim/cockpit2/radios/actuators/adf1_power", C550fsePersistenceSettings.PersistenceData.ADF1_PWR)
+    set("sim/cockpit2/radios/actuators/adf2_power", C550fsePersistenceSettings.PersistenceData.ADF2_PWR)
+    set("sim/cockpit2/radios/actuators/transponder_mode", C550fsePersistenceSettings.PersistenceData.XPDR_MODE)
+
+    if ENG1_RUN == 1 and C550fsePersistenceSettings.PersistenceData.ENG1_RUN == 0 then
+        set("thranda/cockpit/ThrottleLatchAnim_0", 0.5)
+        print("Command Shut 1")
+    end
+    if ENG2_RUN == 1 and C550fsePersistenceSettings.PersistenceData.ENG1_RUN == 0 then
+        set("thranda/cockpit/ThrottleLatchAnim_1", 0.5)
+        print("Command Shut 2")
+    end
     print("FSE Persistence: Position data loaded from " .. AIRCRAFT_PATH .. "fsePersistence.ini")
 end
 
-function AutoPersistenceData()
-    if PRK_BRK == 1 and ENG_RUN == 0 then
+function C550AutoPersistenceData()
+    if C550FSEPtimer < 3 then
+       C550FSEPtimer = C550FSEPtimer + 1
+    end
+    if C550FSEP_Loaded and C550FSEPtimer == 3 and PRK_BRK == 1 and ENG1_RUN == 0 then
         SavePersistenceData()
+        C550FSEPtimer = 0
+    end
+    if C550FSEPready and not C550FSEP_Loaded then
+        ParsePersistenceData() 
+        C550FSEP_Loaded = true
     end
 end
 
--- do_sometimes("AutoPersistenceData()")
+function C550SideSync()
+    local Baro = 0
+    local SpdBug = 0
+
+    if get("sim/cockpit/autopilot/airspeed") ~= SpdBug then
+        SpdBug = get("sim/cockpit/autopilot/airspeed")
+        set("thranda/cockpit/actuators/ASI_adjustCo", SpdBug)
+    end
+    if get("sim/cockpit/misc/barometer_setting") ~= Baro then
+        Baro = get("sim/cockpit/misc/barometer_setting")
+        set("sim/cockpit/misc/barometer_setting2", Baro)
+    end
+end
+
+function C550FSEP_StartDelay()
+    if C550FSEPStartTime == 0 then
+        C550FSEPStartTime = (SIM_TIME + 10)
+    end
+    if (SIM_TIME < C550FSEPStartTime) then
+        return
+    end
+    C550FSEPready = true    
+end
+
+do_often("C550FSEP_StartDelay()")
+do_sometimes("C550SideSync()")
+do_sometimes("C550AutoPersistenceData()")
 
 add_macro("FSE Persistence Save", "SavePersistenceData()")
 add_macro("FSE Persistence Load", "ParsePersistenceData()")
