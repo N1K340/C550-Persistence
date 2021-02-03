@@ -1,0 +1,14 @@
+{
+    "Lua.diagnostics.globals": [
+        "PLANE_ICAO",
+        "dataref",
+        "LAT",
+        "LONG",
+        "HDG",
+        "ELEV",
+        "LIP",
+        "SCRIPT_DIRECTORY",
+        "set",
+        "add_macro"
+    ]
+}
