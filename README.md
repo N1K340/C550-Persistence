@@ -1,4 +1,4 @@
-# FSE Persistence
+# C550 Persistence
  Persistence for Carenado C550 Aircraft
 
 Switch positions will be recorded when the Park Brake is set and the Left Engine is off.
@@ -26,7 +26,7 @@ Installation
 
 Required File List:
 - Scripts
-    FSE_Persistence.lua
+    C550_Persistence.lua
         
 - Modules
     LIP.lua
@@ -36,7 +36,7 @@ Copy the Scripts and Modules folders into the main folder of FlyWithLUA:
 X-Plane 11 > Resources > plugins > FlyWithLua
 
 Saving and loading switch positions can be manually accomplished by selecting the option in:
-Plugins > FlyWithLua > FlyWithLua Macros > FSE Persistence Save / Load
+Plugins > FlyWithLua > FlyWithLua Macros > C550 Persistence Save / Load
 
 
 Disclaimer / Feedback
@@ -56,3 +56,4 @@ This plugin is still a work in progress, to be considered as public beta. Errors
 Change Log
 ==========
 * V0.1 - Initial Beta Release.
+* V1.0 - Initial Release
