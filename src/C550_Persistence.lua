@@ -1,5 +1,5 @@
 --[[ Starting a new file, what an idiot
-Persistence for FSE
+Persistence for Carenado C550
 Objective:
     - Record switch states on exit, reload on loade
     - Record position and reload
@@ -29,7 +29,7 @@ dataref("ENG2_RUN", "sim/flightmodel/engine/ENGN_running", 1)
 
 
 function WritePersistenceData(C550fsePersistenceSettings)
-    LIP.save(AIRCRAFT_PATH .. "/fsePersistence.ini", C550fsePersistenceSettings)
+    LIP.save(AIRCRAFT_PATH .. "/C550Persistence.ini", C550fsePersistenceSettings)
 end
 
 function SavePersistenceData()
@@ -269,11 +269,11 @@ function SavePersistenceData()
         }
     }
     WritePersistenceData(C550fsePersistenceSettings)
-    print("FSE Persistence: Panel data saved to " .. AIRCRAFT_PATH .. "fsePersistence.ini")
+    print("C550 Persistence: Panel data saved to " .. AIRCRAFT_PATH .. "C550Persistence.ini")
 end
 
 function ParsePersistenceData()
-    C550fsePersistenceSettings = LIP.load(AIRCRAFT_PATH .. "/fsePersistence.ini")
+    C550fsePersistenceSettings = LIP.load(AIRCRAFT_PATH .. "/C550Persistence.ini")
 
     set("thranda/cockpit/actuators/HideYokeL", C550fsePersistenceSettings.PersistenceData.LYOKE)
     set("thranda/cockpit/actuators/HideYokeR", C550fsePersistenceSettings.PersistenceData.RYOKE) -- Right Yoke
@@ -403,7 +403,7 @@ function ParsePersistenceData()
         set("thranda/cockpit/ThrottleLatchAnim_1", 0.5)
         print("Command Shut 2")
     end
-    print("FSE Persistence: Position data loaded from " .. AIRCRAFT_PATH .. "fsePersistence.ini")
+    print("C550 Persistence: Position data loaded from " .. AIRCRAFT_PATH .. "C550Persistence.ini")
 end
 
 function C550AutoPersistenceData()
@@ -448,8 +448,8 @@ do_often("C550FSEP_StartDelay()")
 do_sometimes("C550SideSync()")
 do_sometimes("C550AutoPersistenceData()")
 
-add_macro("FSE Persistence Save", "SavePersistenceData()")
-add_macro("FSE Persistence Load", "ParsePersistenceData()")
+add_macro("C550 Persistence Save", "SavePersistenceData()")
+add_macro("C550 Persistence Load", "ParsePersistenceData()")
 
 
 end -- master end
