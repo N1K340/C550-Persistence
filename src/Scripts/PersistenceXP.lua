@@ -155,7 +155,9 @@ end
 
 function pxpCompilePersistenceData()
 
--- Deafulat Datarefs
+    local BAT = get("sim/cockpit/electrical/battery_on") -- Batt Switch
+
+--[[ Deafulat Datarefs
     local GPU = get("sim/cockpit/electrical/gpu_on")
     local DOOR0 = get("sim/cockpit2/switches/door_open", 0) -- 0 Main, 1 Left Bag, 2 Right Bag
     local DOOR1 = get("sim/cockpit2/switches/door_open", 1) -- 0 Main, 1 Left Bag, 2 Right Bag
@@ -173,7 +175,7 @@ function pxpCompilePersistenceData()
 
     local GENL = get("sim/cockpit/electrical/generator_on", 0) -- Gen Switches 0 Left, 1 Right
     local GENR = get("sim/cockpit/electrical/generator_on", 1)
-    local BAT = get("sim/cockpit/electrical/battery_on") -- Batt Switch
+    
     local INV = get("thranda/electrical/AC_InverterSwitch") -- Inverter Switch
     local AVN = get("sim/cockpit/electrical/avionics_on") -- Avionics Switch
     local BOOST_PMP1 = get("sim/cockpit/engine/fuel_pump_on", 0) -- Fuel Pumps, 0 Left, 1 Right
@@ -273,11 +275,12 @@ function pxpCompilePersistenceData()
     local BLWR = get("thranda/pneumatic/BlowerIntensity")
     local CAB_VNT = get("thranda/pneumatic/CabinVent")
     local CAB_FAN2 = get("thranda/pneumatic/CabinFan")
-
+]]
 
     pxpSwitchData = {
         PersistenceData = {
-            LYOKE = LYOKE,
+            BAT = BAT,
+            --[[LYOKE = LYOKE,
             RYOKE = RYOKE,
             LARM = LARM,
             RARM = RARM,
@@ -302,7 +305,6 @@ function pxpCompilePersistenceData()
             TEST_SEL = TEST_SEL,
             GENL = GENL,
             GENR = GENR,
-            BAT = BAT,
             INV = INV,
             AVN = AVN,
             BOOST_PMP1 = BOOST_PMP1,
@@ -384,7 +386,7 @@ function pxpCompilePersistenceData()
             XPDR_MODE = XPDR_MODE,
             DH = DH,
             ENG1_RUN = ENG1_RUN,
-            ENG2_RUN = ENG2_RUN,
+            ENG2_RUN = ENG2_RUN,]]
 
         }
     }
@@ -393,152 +395,158 @@ function pxpCompilePersistenceData()
 end
 
 function pxpParsePersistenceData()
-    pxpSwitchData = LIP.load(AIRCRAFT_PATH .. "/pxpPersistence.ini")
+    local f = io.open(AIRCRAFT_PATH .. "/pxpPersistence.ini","r")
+	if f ~= nil then 
+		io.close(f) 
+        pxpSwitchData = LIP.load(AIRCRAFT_PATH .. "/pxpPersistence.ini")
+        set("sim/cockpit/electrical/battery_on", pxpSwitchData.PersistenceData.BAT) -- Batt Switch
 
-    set("thranda/cockpit/actuators/HideYokeL", pxpSwitchData.PersistenceData.LYOKE)
-    set("thranda/cockpit/actuators/HideYokeR", pxpSwitchData.PersistenceData.RYOKE) -- Right Yoke
-    set("thranda/cockpit/animations/ArmRestLR", pxpSwitchData.PersistenceData.LARM) -- Left Arm Rests
-    set("thranda/cockpit/animations/ArmRestRL", pxpSwitchData.PersistenceData.RARM) -- Right Arm Rest
-    set("sim/cockpit/electrical/gpu_on", pxpSwitchData.PersistenceData.GPU)
-    set("thranda/views/WindowRefl", pxpSwitchData.PersistenceData.WREFL) -- Window Reflections
-    set("thranda/views/InstRefl", pxpSwitchData.PersistenceData.IREFL) -- Instrument Reflections
-    set("thranda/views/staticelements", pxpSwitchData.PersistenceData.COVERS) -- Pitot Covers
-    set_array("sim/cockpit2/switches/door_open", 0, pxpSwitchData.PersistenceData.DOOR0) -- 0 Main, 1 Left Bag, 2 Right Bag
-    set_array("sim/cockpit2/switches/door_open", 1, pxpSwitchData.PersistenceData.DOOR1) -- 0 Main, 1 Left Bag, 2 Right Bag
-    set_array("sim/cockpit2/switches/door_open", 2, pxpSwitchData.PersistenceData.DOOR2) -- 0 Main, 1 Left Bag, 2 Right Bag
-    set("sim/cockpit2/clock_timer/timer_mode", pxpSwitchData.PersistenceData.CLK_MODE)
-    set("sim/cockpit2/radios/actuators/audio_com_selection_man", pxpSwitchData.PersistenceData.XMT) -- Transmit Selector
-    set("sim/cockpit2/radios/actuators/audio_selection_com1", pxpSwitchData.PersistenceData.C1_RCV) -- Com 1 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_com2", pxpSwitchData.PersistenceData.C2_RCV) -- Com 2 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_adf1", pxpSwitchData.PersistenceData.ADF1_RCV) -- ADF 1 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_adf1", pxpSwitchData.PersistenceData.ADF2_RCV) -- ADF 2 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_nav1", pxpSwitchData.PersistenceData.NAV1_RCV) -- NAV 1 Receives
-    set("sim/cockpit2/radios/actuators/audio_selection_nav2", pxpSwitchData.PersistenceData.NAV2_RCV) -- NAV 2 Receives
-    set("sim/cockpit2/radios/actuators/audio_dme_enabled", pxpSwitchData.PersistenceData.DME1_RCV) -- DME Recieve
-    set("sim/cockpit2/radios/actuators/audio_marker_enabled", pxpSwitchData.PersistenceData.MRKR_RCV) -- Marker Recieve
+--[[
+        set("thranda/cockpit/actuators/HideYokeL", pxpSwitchData.PersistenceData.LYOKE)
+        set("thranda/cockpit/actuators/HideYokeR", pxpSwitchData.PersistenceData.RYOKE) -- Right Yoke
+        set("thranda/cockpit/animations/ArmRestLR", pxpSwitchData.PersistenceData.LARM) -- Left Arm Rests
+        set("thranda/cockpit/animations/ArmRestRL", pxpSwitchData.PersistenceData.RARM) -- Right Arm Rest
+        set("sim/cockpit/electrical/gpu_on", pxpSwitchData.PersistenceData.GPU)
+        set("thranda/views/WindowRefl", pxpSwitchData.PersistenceData.WREFL) -- Window Reflections
+        set("thranda/views/InstRefl", pxpSwitchData.PersistenceData.IREFL) -- Instrument Reflections
+        set("thranda/views/staticelements", pxpSwitchData.PersistenceData.COVERS) -- Pitot Covers
+        set_array("sim/cockpit2/switches/door_open", 0, pxpSwitchData.PersistenceData.DOOR0) -- 0 Main, 1 Left Bag, 2 Right Bag
+        set_array("sim/cockpit2/switches/door_open", 1, pxpSwitchData.PersistenceData.DOOR1) -- 0 Main, 1 Left Bag, 2 Right Bag
+        set_array("sim/cockpit2/switches/door_open", 2, pxpSwitchData.PersistenceData.DOOR2) -- 0 Main, 1 Left Bag, 2 Right Bag
+        set("sim/cockpit2/clock_timer/timer_mode", pxpSwitchData.PersistenceData.CLK_MODE)
+        set("sim/cockpit2/radios/actuators/audio_com_selection_man", pxpSwitchData.PersistenceData.XMT) -- Transmit Selector
+        set("sim/cockpit2/radios/actuators/audio_selection_com1", pxpSwitchData.PersistenceData.C1_RCV) -- Com 1 Receives
+        set("sim/cockpit2/radios/actuators/audio_selection_com2", pxpSwitchData.PersistenceData.C2_RCV) -- Com 2 Receives
+        set("sim/cockpit2/radios/actuators/audio_selection_adf1", pxpSwitchData.PersistenceData.ADF1_RCV) -- ADF 1 Receives
+        set("sim/cockpit2/radios/actuators/audio_selection_adf1", pxpSwitchData.PersistenceData.ADF2_RCV) -- ADF 2 Receives
+        set("sim/cockpit2/radios/actuators/audio_selection_nav1", pxpSwitchData.PersistenceData.NAV1_RCV) -- NAV 1 Receives
+        set("sim/cockpit2/radios/actuators/audio_selection_nav2", pxpSwitchData.PersistenceData.NAV2_RCV) -- NAV 2 Receives
+        set("sim/cockpit2/radios/actuators/audio_dme_enabled", pxpSwitchData.PersistenceData.DME1_RCV) -- DME Recieve
+        set("sim/cockpit2/radios/actuators/audio_marker_enabled", pxpSwitchData.PersistenceData.MRKR_RCV) -- Marker Recieve
 
-    set("thranda/actuators/VoltSelAct", pxpSwitchData.PersistenceData.VOLT_SEL) -- Volt Selector
-    set("thranda/annunciators/AnnunTestKnob", pxpSwitchData.PersistenceData.TEST_SEL) -- Test Selector
-    set_array("sim/cockpit/electrical/generator_on", 0, pxpSwitchData.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
-    set_array("sim/cockpit/electrical/generator_on", 1, pxpSwitchData.PersistenceData.GENR)
-    set("sim/cockpit/electrical/battery_on", pxpSwitchData.PersistenceData.BAT) -- Batt Switch
-    set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV) -- Inverter Switch
-    set("sim/cockpit/electrical/avionics_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
-    set_array("sim/cockpit/engine/fuel_pump_on", 0, pxpSwitchData.PersistenceData.BOOST_PMP1) -- Fuel Pumps, 0 Left, 1 Right
-    set_array("sim/cockpit/engine/fuel_pump_on", 1, pxpSwitchData.PersistenceData.BOOST_PMP2)
-    set_array("sim/cockpit/engine/igniters_on", 0, pxpSwitchData.PersistenceData.IGN1) -- Ignition 0 Left 1 Right
-    set_array("sim/cockpit/engine/igniters_on", 1, pxpSwitchData.PersistenceData.IGN2)
-    set("sim/cockpit2/ice/ice_pitot_heat_on_pilot", pxpSwitchData.PersistenceData.PIT_HT) -- Pitot Heat
-    set("sim/cockpit2/ice/ice_window_heat_on", pxpSwitchData.PersistenceData.WS_BLD) -- Window Bleed
-    set_array("sim/cockpit/switches/anti_ice_engine_air", 0, pxpSwitchData.PersistenceData.ENG_AI1) -- 0 Left 1 Right
-    set_array("sim/cockpit/switches/anti_ice_engine_air", 1, pxpSwitchData.PersistenceData.ENG_AI2)
-    set("sim/cockpit2/ice/ice_surface_boot_on", pxpSwitchData.PersistenceData.SURF_AI) 
-    set_array("sim/cockpit/gyros/gyr_free_slaved", 0, pxpSwitchData.PersistenceData.GYROSL) -- 0 LH Main, 1 LH Source
-    set_array("sim/cockpit/gyros/gyr_free_slaved", 1, pxpSwitchData.PersistenceData.GYROSR)
+        set("thranda/actuators/VoltSelAct", pxpSwitchData.PersistenceData.VOLT_SEL) -- Volt Selector
+        set("thranda/annunciators/AnnunTestKnob", pxpSwitchData.PersistenceData.TEST_SEL) -- Test Selector
+        set_array("sim/cockpit/electrical/generator_on", 0, pxpSwitchData.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
+        set_array("sim/cockpit/electrical/generator_on", 1, pxpSwitchData.PersistenceData.GENR)
+        set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV) -- Inverter Switch
+        set("sim/cockpit/electrical/avionics_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
+        set_array("sim/cockpit/engine/fuel_pump_on", 0, pxpSwitchData.PersistenceData.BOOST_PMP1) -- Fuel Pumps, 0 Left, 1 Right
+        set_array("sim/cockpit/engine/fuel_pump_on", 1, pxpSwitchData.PersistenceData.BOOST_PMP2)
+        set_array("sim/cockpit/engine/igniters_on", 0, pxpSwitchData.PersistenceData.IGN1) -- Ignition 0 Left 1 Right
+        set_array("sim/cockpit/engine/igniters_on", 1, pxpSwitchData.PersistenceData.IGN2)
+        set("sim/cockpit2/ice/ice_pitot_heat_on_pilot", pxpSwitchData.PersistenceData.PIT_HT) -- Pitot Heat
+        set("sim/cockpit2/ice/ice_window_heat_on", pxpSwitchData.PersistenceData.WS_BLD) -- Window Bleed
+        set_array("sim/cockpit/switches/anti_ice_engine_air", 0, pxpSwitchData.PersistenceData.ENG_AI1) -- 0 Left 1 Right
+        set_array("sim/cockpit/switches/anti_ice_engine_air", 1, pxpSwitchData.PersistenceData.ENG_AI2)
+        set("sim/cockpit2/ice/ice_surface_boot_on", pxpSwitchData.PersistenceData.SURF_AI) 
+        set_array("sim/cockpit/gyros/gyr_free_slaved", 0, pxpSwitchData.PersistenceData.GYROSL) -- 0 LH Main, 1 LH Source
+        set_array("sim/cockpit/gyros/gyr_free_slaved", 1, pxpSwitchData.PersistenceData.GYROSR)
 
-    
-    set("thranda/fuel/CrossFeedLRSw", pxpSwitchData.PersistenceData.FUEL_SEL)
-    set("thranda/lights/RecogLights", pxpSwitchData.PersistenceData.RECOG)
-    set("sim/cockpit/electrical/strobe_lights_on", pxpSwitchData.PersistenceData.COLL)
-    set("sim/cockpit2/switches/navigation_lights_on", pxpSwitchData.PersistenceData.Nav_LT)
+        
+        set("thranda/fuel/CrossFeedLRSw", pxpSwitchData.PersistenceData.FUEL_SEL)
+        set("thranda/lights/RecogLights", pxpSwitchData.PersistenceData.RECOG)
+        set("sim/cockpit/electrical/strobe_lights_on", pxpSwitchData.PersistenceData.COLL)
+        set("sim/cockpit2/switches/navigation_lights_on", pxpSwitchData.PersistenceData.Nav_LT)
 
-    set("sim/cockpit/autopilot/airspeed", pxpSwitchData.PersistenceData.SPD_BG) -- Speed Bug
-    set("sim/cockpit/switches/RMI_l_vor_adf_selector", pxpSwitchData.PersistenceData.RMI_L) -- Left RMI
-    set("sim/cockpit/switches/RMI_r_vor_adf_selector", pxpSwitchData.PersistenceData.RMI_R) -- Right RMI
+        set("sim/cockpit/autopilot/airspeed", pxpSwitchData.PersistenceData.SPD_BG) -- Speed Bug
+        set("sim/cockpit/switches/RMI_l_vor_adf_selector", pxpSwitchData.PersistenceData.RMI_L) -- Left RMI
+        set("sim/cockpit/switches/RMI_r_vor_adf_selector", pxpSwitchData.PersistenceData.RMI_R) -- Right RMI
 
-    set("sim/cockpit2/radios/actuators/DME_mode", pxpSwitchData.PersistenceData.DME_CH)
-    set("sim/cockpit/switches/DME_distance_or_time", pxpSwitchData.PersistenceData.DME_SEL)
-    set("sim/cockpit2/radios/actuators/dme_power", pxpSwitchData.PersistenceData.DME_PWR)
+        set("sim/cockpit2/radios/actuators/DME_mode", pxpSwitchData.PersistenceData.DME_CH)
+        set("sim/cockpit/switches/DME_distance_or_time", pxpSwitchData.PersistenceData.DME_SEL)
+        set("sim/cockpit2/radios/actuators/dme_power", pxpSwitchData.PersistenceData.DME_PWR)
 
-    set("sim/cockpit/misc/radio_altimeter_minimum", pxpSwitchData.PersistenceData.DH)
-    set("thranda/instruments/BaroUnits", pxpSwitchData.PersistenceData.BARO_UNIT)
-    set("sim/cockpit2/fuel/fuel_totalizer_sum_kg", pxpSwitchData.PersistenceData.FUEL_TTL)
+        set("sim/cockpit/misc/radio_altimeter_minimum", pxpSwitchData.PersistenceData.DH)
+        set("thranda/instruments/BaroUnits", pxpSwitchData.PersistenceData.BARO_UNIT)
+        set("sim/cockpit2/fuel/fuel_totalizer_sum_kg", pxpSwitchData.PersistenceData.FUEL_TTL)
 
-    set("thranda/knobs/N1_Dial", pxpSwitchData.PersistenceData.N1_Dial)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 1, pxpSwitchData.PersistenceData.FLOOD_LT)
-    set_array("sim/cockpit2/switches/generic_lights_switch", 30 ,pxpSwitchData.PersistenceData.PNL_LT)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 2, pxpSwitchData.PersistenceData.PNL_LFT , 3)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 3, pxpSwitchData.PersistenceData.PNL_CTR , 4)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 4, pxpSwitchData.PersistenceData.PNL_RT , 5)
-    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 5, pxpSwitchData.PersistenceData.PNL_EL , 6)
-    set("sim/cockpit/switches/fasten_seat_belts", pxpSwitchData.PersistenceData.ST_BLT)
-    set("sim/cockpit2/switches/beacon_on", pxpSwitchData.PersistenceData.BCN)
-    set("thranda/lights/LandingLightLeft", pxpSwitchData.PersistenceData.L_LND)
-    set("thranda/lights/LandingLightRight", pxpSwitchData.PersistenceData.R_LND)
-    set("thranda/gear/AntiSkid", pxpSwitchData.PersistenceData.ASKID)
+        set("thranda/knobs/N1_Dial", pxpSwitchData.PersistenceData.N1_Dial)
+        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 1, pxpSwitchData.PersistenceData.FLOOD_LT)
+        set_array("sim/cockpit2/switches/generic_lights_switch", 30 ,pxpSwitchData.PersistenceData.PNL_LT)
+        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 2, pxpSwitchData.PersistenceData.PNL_LFT , 3)
+        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 3, pxpSwitchData.PersistenceData.PNL_CTR , 4)
+        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 4, pxpSwitchData.PersistenceData.PNL_RT , 5)
+        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 5, pxpSwitchData.PersistenceData.PNL_EL , 6)
+        set("sim/cockpit/switches/fasten_seat_belts", pxpSwitchData.PersistenceData.ST_BLT)
+        set("sim/cockpit2/switches/beacon_on", pxpSwitchData.PersistenceData.BCN)
+        set("thranda/lights/LandingLightLeft", pxpSwitchData.PersistenceData.L_LND)
+        set("thranda/lights/LandingLightRight", pxpSwitchData.PersistenceData.R_LND)
+        set("thranda/gear/AntiSkid", pxpSwitchData.PersistenceData.ASKID)
 
-    set("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm", pxpSwitchData.PersistenceData.PRESS_VVI)
-    set("sim/cockpit/pressure/cabin_altitude_set_m_msl", pxpSwitchData.PersistenceData.CAB_ALT)
-    set_array("thranda/BT", 22, pxpSwitchData.PersistenceData.TEMP_MAN)
-    set("thranda/pneumatic/CabinTempAct", pxpSwitchData.PersistenceData.TEMP_CTRL)
-    set("thranda/pneumatic/PressureSource", pxpSwitchData.PersistenceData.PRES_SRC)
-    set("thranda/pneumatic/AirFlowDistribution", pxpSwitchData.PersistenceData.FLOW_DIST)
+        set("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm", pxpSwitchData.PersistenceData.PRESS_VVI)
+        set("sim/cockpit/pressure/cabin_altitude_set_m_msl", pxpSwitchData.PersistenceData.CAB_ALT)
+        set_array("thranda/BT", 22, pxpSwitchData.PersistenceData.TEMP_MAN)
+        set("thranda/pneumatic/CabinTempAct", pxpSwitchData.PersistenceData.TEMP_CTRL)
+        set("thranda/pneumatic/PressureSource", pxpSwitchData.PersistenceData.PRES_SRC)
+        set("thranda/pneumatic/AirFlowDistribution", pxpSwitchData.PersistenceData.FLOW_DIST)
 
-    set("sim/cockpit2/controls/elevator_trim", pxpSwitchData.PersistenceData.TRIM)
-    set("sim/cockpit2/controls/speedbrake_ratio", pxpSwitchData.PersistenceData.SPD_BRK)
-    set("sim/cockpit2/controls/flap_ratio", pxpSwitchData.PersistenceData.FLP_HNDL)
-    set("sim/cockpit2/switches/jet_sync_mode", pxpSwitchData.PersistenceData.FAN_SYNC)
+        set("sim/cockpit2/controls/elevator_trim", pxpSwitchData.PersistenceData.TRIM)
+        set("sim/cockpit2/controls/speedbrake_ratio", pxpSwitchData.PersistenceData.SPD_BRK)
+        set("sim/cockpit2/controls/flap_ratio", pxpSwitchData.PersistenceData.FLP_HNDL)
+        set("sim/cockpit2/switches/jet_sync_mode", pxpSwitchData.PersistenceData.FAN_SYNC)
 
-    set("sim/cockpit/radios/nav1_obs_degm", pxpSwitchData.PersistenceData.CRS1)
-    set("sim/cockpit/autopilot/heading_mag", pxpSwitchData.PersistenceData.HDG)
-    set("sim/cockpit2/autopilot/vvi_dial_fpm", pxpSwitchData.PersistenceData.VS)
-    set("sim/cockpit2/autopilot/altitude_dial_ft", pxpSwitchData.PersistenceData.APA)
+        set("sim/cockpit/radios/nav1_obs_degm", pxpSwitchData.PersistenceData.CRS1)
+        set("sim/cockpit/autopilot/heading_mag", pxpSwitchData.PersistenceData.HDG)
+        set("sim/cockpit2/autopilot/vvi_dial_fpm", pxpSwitchData.PersistenceData.VS)
+        set("sim/cockpit2/autopilot/altitude_dial_ft", pxpSwitchData.PersistenceData.APA)
 
-    set("thranda/ice/WindshieldIceL", pxpSwitchData.PersistenceData.L_WS)
-    set("thranda/ice/WindshieldIceR", pxpSwitchData.PersistenceData.R_WS)
-    set_array("thranda/BT", 23, pxpSwitchData.PersistenceData.CAB_FAN1)
-    set_array("thranda/BT", 24, pxpSwitchData.PersistenceData.CAB_FOG)
-    set("thranda/pneumatic/AC", pxpSwitchData.PersistenceData.AC)
-    set("thranda/pneumatic/BlowerIntensity", pxpSwitchData.PersistenceData.BLWR)
-    set("thranda/pneumatic/CabinVent", pxpSwitchData.PersistenceData.CAB_VNT)
-    set("thranda/pneumatic/CabinFan", pxpSwitchData.PersistenceData.CAB_FAN2)
+        set("thranda/ice/WindshieldIceL", pxpSwitchData.PersistenceData.L_WS)
+        set("thranda/ice/WindshieldIceR", pxpSwitchData.PersistenceData.R_WS)
+        set_array("thranda/BT", 23, pxpSwitchData.PersistenceData.CAB_FAN1)
+        set_array("thranda/BT", 24, pxpSwitchData.PersistenceData.CAB_FOG)
+        set("thranda/pneumatic/AC", pxpSwitchData.PersistenceData.AC)
+        set("thranda/pneumatic/BlowerIntensity", pxpSwitchData.PersistenceData.BLWR)
+        set("thranda/pneumatic/CabinVent", pxpSwitchData.PersistenceData.CAB_VNT)
+        set("thranda/pneumatic/CabinFan", pxpSwitchData.PersistenceData.CAB_FAN2)
 
-    set("sim/cockpit/radios/com1_freq_hz", pxpSwitchData.PersistenceData.COM1_ACT)
-    set("sim/cockpit/radios/com1_stdby_freq_hz", pxpSwitchData.PersistenceData.COM1_STB)
-    set("sim/cockpit/radios/com2_freq_hz", pxpSwitchData.PersistenceData.COM2_ACT)
-    set("sim/cockpit/radios/com2_stdby_freq_hz", pxpSwitchData.PersistenceData.COM2_STB)
-    set("sim/cockpit/radios/nav1_freq_hz", pxpSwitchData.PersistenceData.NAV1_ACT)
-    set("sim/cockpit/radios/nav1_stdby_freq_hz", pxpSwitchData.PersistenceData.NAV1_STB)
-    set("sim/cockpit/radios/nav1_freq_hz", pxpSwitchData.PersistenceData.NAV2_ACT)
-    set("sim/cockpit/radios/nav1_stdby_freq_hz", pxpSwitchData.PersistenceData.NAV2_STB)
-    set("sim/cockpit/radios/adf1_freq_hz", pxpSwitchData.PersistenceData.ADF1_ACT)
-    set("sim/cockpit/radios/adf1_stdby_freq_hz", pxpSwitchData.PersistenceData.ADF1_STB)
-    set("sim/cockpit/radios/adf2_freq_hz", pxpSwitchData.PersistenceData.ADF2_ACT)
-    set("sim/cockpit/radios/adf2_stdby_freq_hz", pxpSwitchData.PersistenceData.ADF2_STB)  
-    set("sim/cockpit/radios/transponder_code", pxpSwitchData.PersistenceData.XPDR_COD)
+        set("sim/cockpit/radios/com1_freq_hz", pxpSwitchData.PersistenceData.COM1_ACT)
+        set("sim/cockpit/radios/com1_stdby_freq_hz", pxpSwitchData.PersistenceData.COM1_STB)
+        set("sim/cockpit/radios/com2_freq_hz", pxpSwitchData.PersistenceData.COM2_ACT)
+        set("sim/cockpit/radios/com2_stdby_freq_hz", pxpSwitchData.PersistenceData.COM2_STB)
+        set("sim/cockpit/radios/nav1_freq_hz", pxpSwitchData.PersistenceData.NAV1_ACT)
+        set("sim/cockpit/radios/nav1_stdby_freq_hz", pxpSwitchData.PersistenceData.NAV1_STB)
+        set("sim/cockpit/radios/nav1_freq_hz", pxpSwitchData.PersistenceData.NAV2_ACT)
+        set("sim/cockpit/radios/nav1_stdby_freq_hz", pxpSwitchData.PersistenceData.NAV2_STB)
+        set("sim/cockpit/radios/adf1_freq_hz", pxpSwitchData.PersistenceData.ADF1_ACT)
+        set("sim/cockpit/radios/adf1_stdby_freq_hz", pxpSwitchData.PersistenceData.ADF1_STB)
+        set("sim/cockpit/radios/adf2_freq_hz", pxpSwitchData.PersistenceData.ADF2_ACT)
+        set("sim/cockpit/radios/adf2_stdby_freq_hz", pxpSwitchData.PersistenceData.ADF2_STB)  
+        set("sim/cockpit/radios/transponder_code", pxpSwitchData.PersistenceData.XPDR_COD)
 
-    set("sim/cockpit2/radios/actuators/com1_power", pxpSwitchData.PersistenceData.COM1_PWR)
-    set("sim/cockpit2/radios/actuators/com2_power", pxpSwitchData.PersistenceData.COM2_PWR)
-    set("sim/cockpit2/radios/actuators/nav1_power", pxpSwitchData.PersistenceData.NAV1_PWR)
-    set("sim/cockpit2/radios/actuators/nav2_power", pxpSwitchData.PersistenceData.NAV2_PWR)
-    set("sim/cockpit2/radios/actuators/adf1_power", pxpSwitchData.PersistenceData.ADF1_PWR)
-    set("sim/cockpit2/radios/actuators/adf2_power", pxpSwitchData.PersistenceData.ADF2_PWR)
-    set("sim/cockpit2/radios/actuators/transponder_mode", pxpSwitchData.PersistenceData.XPDR_MODE)
+        set("sim/cockpit2/radios/actuators/com1_power", pxpSwitchData.PersistenceData.COM1_PWR)
+        set("sim/cockpit2/radios/actuators/com2_power", pxpSwitchData.PersistenceData.COM2_PWR)
+        set("sim/cockpit2/radios/actuators/nav1_power", pxpSwitchData.PersistenceData.NAV1_PWR)
+        set("sim/cockpit2/radios/actuators/nav2_power", pxpSwitchData.PersistenceData.NAV2_PWR)
+        set("sim/cockpit2/radios/actuators/adf1_power", pxpSwitchData.PersistenceData.ADF1_PWR)
+        set("sim/cockpit2/radios/actuators/adf2_power", pxpSwitchData.PersistenceData.ADF2_PWR)
+        set("sim/cockpit2/radios/actuators/transponder_mode", pxpSwitchData.PersistenceData.XPDR_MODE)
 
-    if ENG1_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
-        set("thranda/cockpit/ThrottleLatchAnim_0", 0.5)
-        print("Command Shut 1")
+        if ENG1_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
+            set("thranda/cockpit/ThrottleLatchAnim_0", 0.5)
+            print("Command Shut 1")
+        end
+        if ENG2_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
+            set("thranda/cockpit/ThrottleLatchAnim_1", 0.5)
+            print("Command Shut 2")
+        end]]
+        print("PersistenceXP Panel State Loaded")
     end
-    if ENG2_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
-        set("thranda/cockpit/ThrottleLatchAnim_1", 0.5)
-        print("Command Shut 2")
-    end
-    print("PersistenceXP Panel State Loaded")
-end
 
-function PXPSideSync()
-    local Baro = 0
-    local SpdBug = 0
+ --[[   function PXPSideSync()
+        local Baro = 0
+        local SpdBug = 0
 
-    if get("sim/cockpit/autopilot/airspeed") ~= SpdBug then
-        SpdBug = get("sim/cockpit/autopilot/airspeed")
-        set("thranda/cockpit/actuators/ASI_adjustCo", SpdBug)
-    end
-    if get("sim/cockpit/misc/barometer_setting") ~= Baro then
-        Baro = get("sim/cockpit/misc/barometer_setting")
-        set("sim/cockpit/misc/barometer_setting2", Baro)
-    end
-end
+        if get("sim/cockpit/autopilot/airspeed") ~= SpdBug then
+            SpdBug = get("sim/cockpit/autopilot/airspeed")
+            set("thranda/cockpit/actuators/ASI_adjustCo", SpdBug)
+        end
+        if get("sim/cockpit/misc/barometer_setting") ~= Baro then
+            Baro = get("sim/cockpit/misc/barometer_setting")
+            set("sim/cockpit/misc/barometer_setting2", Baro)
+        end
+    else
+    print("PersistenceXP panel state for aircraft not found")   
+end]]
 
 
 
