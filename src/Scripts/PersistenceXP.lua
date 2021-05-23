@@ -132,7 +132,7 @@ function pxpAutoPersistenceData()
        pxpScriptLoadTimer = pxpScriptLoadTimer + 1
     end
     if pxpScriptLoaded and pxpScriptLoadTimer == 3 and PRK_BRK == 1 and ENG1_RUN == 0 then
-        pxpSavePersistenceData()
+        pxpCompilePersistenceData()
         pxpScriptLoadTimer = 0
     end
     if pxpScriptReady and not pxpScriptLoaded then
@@ -391,7 +391,7 @@ function pxpCompilePersistenceData()
         }
     }
     pxpWritePersistenceData(pxpSwitchData)
-    print("C550 Persistence: Panel data saved to " .. AIRCRAFT_PATH .. "pxpPersistence.ini")
+    print("PersistenceXP Panel data saved to " .. AIRCRAFT_PATH .. "pxpPersistence.ini")
 end
 
 function pxpParsePersistenceData()
@@ -531,6 +531,7 @@ function pxpParsePersistenceData()
         end]]
         print("PersistenceXP Panel State Loaded")
     end
+end
 
  --[[   function PXPSideSync()
         local Baro = 0
