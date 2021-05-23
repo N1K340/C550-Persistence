@@ -9,6 +9,8 @@
         "LIP",
         "SCRIPT_DIRECTORY",
         "set",
-        "add_macro"
+        "add_macro",
+        "AIRCRAFT_PATH",
+        "get"
     ]
 }
