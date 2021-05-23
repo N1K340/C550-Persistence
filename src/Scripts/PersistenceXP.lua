@@ -122,32 +122,38 @@ function pxpSettings_content(pxpSettings_wnd, x, y)
         end
 end
 
-add_macro("View PersistenceXP Settings", "pxpOpenSettings_wnd()", "pxpCloseSettings_wnd()", "deactivate")
+add_macro("PersistenceXP View Settings", "pxpOpenSettings_wnd()", "pxpCloseSettings_wnd()", "deactivate")
 
 
 -- Main Function Call
 
-function C550AutoPersistenceData()
+function pxpAutoPersistenceData()
     if pxpScriptLoadTimer < 3 then
        pxpScriptLoadTimer = pxpScriptLoadTimer + 1
     end
     if pxpScriptLoaded and pxpScriptLoadTimer == 3 and PRK_BRK == 1 and ENG1_RUN == 0 then
-        SavePersistenceData()
+        pxpSavePersistenceData()
         pxpScriptLoadTimer = 0
     end
     if pxpScriptReady and not pxpScriptLoaded then
-        ParsePersistenceData() 
+        pxpParsePersistenceData() 
         pxpScriptLoaded = true
     end
 end
 
---[[ Save and Load Switch Positions
+do_sometimes("pxpAutoPersistenceData()")
 
-function WritePersistenceData(pxpSwitchData)
-    LIP.save(AIRCRAFT_PATH .. "/C550Persistence.ini", pxpSwitchData)
+add_macro("PersistenceXP Save Panel State", "SavePersistenceData()")
+add_macro("PersistenceXP Load Panel State", "ParsePersistenceData()")
+
+-- Save and Load Panel Data Functions
+
+function pxpWritePersistenceData(pxpSwitchData)
+    LIP.save(AIRCRAFT_PATH .. "/pxpPersistence.ini", pxpSwitchData)
+    print("PersistenceXP Panel State Saved")
 end
 
-function SavePersistenceData()
+function pxpCompilePersistenceData()
 
 -- Deafulat Datarefs
     local GPU = get("sim/cockpit/electrical/gpu_on")
@@ -382,12 +388,12 @@ function SavePersistenceData()
 
         }
     }
-    WritePersistenceData(pxpSwitchData)
-    print("C550 Persistence: Panel data saved to " .. AIRCRAFT_PATH .. "C550Persistence.ini")
+    pxpWritePersistenceData(pxpSwitchData)
+    print("C550 Persistence: Panel data saved to " .. AIRCRAFT_PATH .. "pxpPersistence.ini")
 end
 
-function ParsePersistenceData()
-    pxpSwitchData = LIP.load(AIRCRAFT_PATH .. "/C550Persistence.ini")
+function pxpParsePersistenceData()
+    pxpSwitchData = LIP.load(AIRCRAFT_PATH .. "/pxpPersistence.ini")
 
     set("thranda/cockpit/actuators/HideYokeL", pxpSwitchData.PersistenceData.LYOKE)
     set("thranda/cockpit/actuators/HideYokeR", pxpSwitchData.PersistenceData.RYOKE) -- Right Yoke
@@ -517,7 +523,7 @@ function ParsePersistenceData()
         set("thranda/cockpit/ThrottleLatchAnim_1", 0.5)
         print("Command Shut 2")
     end
-    print("C550 Persistence: Position data loaded from " .. AIRCRAFT_PATH .. "C550Persistence.ini")
+    print("PersistenceXP Panel State Loaded")
 end
 
 function PXPSideSync()
@@ -537,11 +543,8 @@ end
 
 
 
-do_sometimes("PXPSideSync()")
-do_sometimes("C550AutoPersistenceData()")
-
-add_macro("C550 Persistence Save", "SavePersistenceData()")
-add_macro("C550 Persistence Load", "ParsePersistenceData()")
+-- do_sometimes("PXPSideSync()")
 
 
-]]-- end -- master end
+
+-- end -- master end
