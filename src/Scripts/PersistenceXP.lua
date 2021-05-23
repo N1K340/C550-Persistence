@@ -1,5 +1,5 @@
 --[[ Starting a new file, what an idiot
-Persistence for Carenado C550
+Persistence for X-Plane 11 Aircraft, with compatability with custom datarefs as coded.
 Objective:
     - Record switch states on exit, reload on loade
     - Record position and reload
