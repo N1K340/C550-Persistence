@@ -8,20 +8,20 @@ Objective:
 
 
 
-if PLANE_ICAO == "C550" then
+-- if PLANE_ICAO == "C550" then
 
 -- Modules
 local LIP = require("LIP")
 require "graphics"
 
--- Variables
+-- Main Script Variables
 local C550fsePersistenceSettings = {}
 local C550FSEP_Loaded = false
 local C550FSEPtimer = 3
 local C550FSEPStartTime = 0
 local C550FSEPready = false
 
--- Datarefs
+-- Script Datarefs
 dataref("SIM_TIME", "sim/time/total_running_time_sec")
 dataref("PRK_BRK", "sim/flightmodel/controls/parkbrake")
 dataref("ENG1_RUN", "sim/flightmodel/engine/ENGN_running", 0)
@@ -33,14 +33,9 @@ function WritePersistenceData(C550fsePersistenceSettings)
 end
 
 function SavePersistenceData()
-    local LYOKE = get("thranda/cockpit/actuators/HideYokeL")
-    local RYOKE = get("thranda/cockpit/actuators/HideYokeR") -- Right Yoke
-    local LARM = get("thranda/cockpit/animations/ArmRestLR") -- Left Arm Rests
-    local RARM = get("thranda/cockpit/animations/ArmRestRL") -- Right Arm Rest
+
+-- Deafulat Datarefs
     local GPU = get("sim/cockpit/electrical/gpu_on")
-    local WREFL = get("thranda/views/WindowRefl") -- Window Reflections
-    local IREFL = get("thranda/views/InstRefl") -- Instrument Reflections
-    local COVERS = get("thranda/views/staticelements") -- Pitot Covers
     local DOOR0 = get("sim/cockpit2/switches/door_open", 0) -- 0 Main, 1 Left Bag, 2 Right Bag
     local DOOR1 = get("sim/cockpit2/switches/door_open", 1) -- 0 Main, 1 Left Bag, 2 Right Bag
     local DOOR2 = get("sim/cockpit2/switches/door_open", 2) -- 0 Main, 1 Left Bag, 2 Right Bag
@@ -55,8 +50,6 @@ function SavePersistenceData()
     local DME1_RCV = get("sim/cockpit2/radios/actuators/audio_dme_enabled") -- DME Recieve
     local MRKR_RCV = get("sim/cockpit2/radios/actuators/audio_marker_enabled") -- Marker Recieve
 
-    local VOLT_SEL = get("thranda/actuators/VoltSelAct") -- Volt Selector
-    local TEST_SEL = get("thranda/annunciators/AnnunTestKnob") -- Test Selector
     local GENL = get("sim/cockpit/electrical/generator_on", 0) -- Gen Switches 0 Left, 1 Right
     local GENR = get("sim/cockpit/electrical/generator_on", 1)
     local BAT = get("sim/cockpit/electrical/battery_on") -- Batt Switch
@@ -73,10 +66,7 @@ function SavePersistenceData()
     local SURF_AI = get("sim/cockpit2/ice/ice_surface_boot_on") 
     local GYROSL = get("sim/cockpit/gyros/gyr_free_slaved", 0) -- 0 LH Main, 1 LH Source
     local GYROSR = get("sim/cockpit/gyros/gyr_free_slaved", 1)
-
-    local FUEL_SEL = get("thranda/fuel/CrossFeedLRSw")
-
-    local RECOG = get("thranda/lights/RecogLights")
+    
     local COLL = get("sim/cockpit/electrical/strobe_lights_on")
     local Nav_LT = get("sim/cockpit2/switches/navigation_lights_on")
 
@@ -87,11 +77,7 @@ function SavePersistenceData()
     local DME_SEL = get("sim/cockpit/switches/DME_distance_or_time")
     local DME_PWR = get("sim/cockpit2/radios/actuators/dme_power")
     local DH = get("sim/cockpit/misc/radio_altimeter_minimum")
-
-    local BARO_UNIT = get("thranda/instruments/BaroUnits")
     local FUEL_TTL = get("sim/cockpit2/fuel/fuel_totalizer_sum_kg")
-
-    local N1_Dial = get("thranda/knobs/N1_Dial")
     -- local INSTR_LTS = get("sim/cockpit2/switches/instrument_brightness_ratio")
     local FLOOD_LT = get("sim/cockpit2/switches/instrument_brightness_ratio", 1)
     local PNL_LT = get("sim/cockpit2/switches/generic_lights_switch", 30)
@@ -101,17 +87,8 @@ function SavePersistenceData()
     local PNL_EL = get("sim/cockpit2/switches/instrument_brightness_ratio", 5)
     local ST_BLT = get("sim/cockpit/switches/fasten_seat_belts")
     local BCN = get("sim/cockpit2/switches/beacon_on")
-    local L_LND = get("thranda/lights/LandingLightLeft")
-    local R_LND = get("thranda/lights/LandingLightRight")
-    local ASKID = get("thranda/gear/AntiSkid")
-
     local PRESS_VVI = get("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm")
     local CAB_ALT = get("sim/cockpit/pressure/cabin_altitude_set_m_msl")
-    local TEMP_MAN = get("thranda/BT", 23)
-    local TEMP_CTRL = get("thranda/pneumatic/CabinTempAct")
-    local PRES_SRC = get("thranda/pneumatic/PressureSource")
-    local FLOW_DIST = get("thranda/pneumatic/AirFlowDistribution")
-
     local TRIM = get("sim/cockpit2/controls/elevator_trim")
     local SPD_BRK = get("sim/cockpit2/controls/speedbrake_ratio")
     local FLP_HNDL = get("sim/cockpit2/controls/flap_ratio")
@@ -121,15 +98,6 @@ function SavePersistenceData()
     local HDG = get("sim/cockpit/autopilot/heading_mag")
     local VS = get("sim/cockpit2/autopilot/vvi_dial_fpm")
     local APA = get("sim/cockpit2/autopilot/altitude_dial_ft")
-
-    local L_WS = get("thranda/ice/WindshieldIceL")
-    local R_WS = get("thranda/ice/WindshieldIceR")
-    local CAB_FAN1 = get("thranda/BT", 23)
-    local CAB_FOG = get("thranda/BT", 24)
-    local AC = get("thranda/pneumatic/AC")
-    local BLWR = get("thranda/pneumatic/BlowerIntensity")
-    local CAB_VNT = get("thranda/pneumatic/CabinVent")
-    local CAB_FAN2 = get("thranda/pneumatic/CabinFan")
 
     local COM1_ACT = get("sim/cockpit/radios/com1_freq_hz")
     local COM1_STB = get("sim/cockpit/radios/com1_stdby_freq_hz")
@@ -154,6 +122,37 @@ function SavePersistenceData()
     local XPDR_MODE = get("sim/cockpit2/radios/actuators/transponder_mode")
     local ENG1_RUN = get("sim/flightmodel/engine/ENGN_running", 0)
     local ENG2_RUN = get("sim/flightmodel/engine/ENGN_running", 1)
+
+    
+    local LYOKE = get("thranda/cockpit/actuators/HideYokeL")
+    local RYOKE = get("thranda/cockpit/actuators/HideYokeR") -- Right Yoke
+    local LARM = get("thranda/cockpit/animations/ArmRestLR") -- Left Arm Rests
+    local RARM = get("thranda/cockpit/animations/ArmRestRL") -- Right Arm Rest
+    local WREFL = get("thranda/views/WindowRefl") -- Window Reflections
+    local IREFL = get("thranda/views/InstRefl") -- Instrument Reflections
+    local COVERS = get("thranda/views/staticelements") -- Pitot Covers
+    local VOLT_SEL = get("thranda/actuators/VoltSelAct") -- Volt Selector
+    local TEST_SEL = get("thranda/annunciators/AnnunTestKnob") -- Test Selector
+    local FUEL_SEL = get("thranda/fuel/CrossFeedLRSw")
+    local RECOG = get("thranda/lights/RecogLights")
+    local BARO_UNIT = get("thranda/instruments/BaroUnits")
+    local N1_Dial = get("thranda/knobs/N1_Dial")
+    local L_LND = get("thranda/lights/LandingLightLeft")
+    local R_LND = get("thranda/lights/LandingLightRight")
+    local ASKID = get("thranda/gear/AntiSkid")
+    local TEMP_MAN = get("thranda/BT", 23)
+    local TEMP_CTRL = get("thranda/pneumatic/CabinTempAct")
+    local PRES_SRC = get("thranda/pneumatic/PressureSource")
+    local FLOW_DIST = get("thranda/pneumatic/AirFlowDistribution")
+    local L_WS = get("thranda/ice/WindshieldIceL")
+    local R_WS = get("thranda/ice/WindshieldIceR")
+    local CAB_FAN1 = get("thranda/BT", 23)
+    local CAB_FOG = get("thranda/BT", 24)
+    local AC = get("thranda/pneumatic/AC")
+    local BLWR = get("thranda/pneumatic/BlowerIntensity")
+    local CAB_VNT = get("thranda/pneumatic/CabinVent")
+    local CAB_FAN2 = get("thranda/pneumatic/CabinFan")
+
 
     C550fsePersistenceSettings = {
         PersistenceData = {
@@ -420,7 +419,7 @@ function C550AutoPersistenceData()
     end
 end
 
-function C550SideSync()
+function PXPSideSync()
     local Baro = 0
     local SpdBug = 0
 
@@ -445,11 +444,11 @@ function C550FSEP_StartDelay()
 end
 
 do_often("C550FSEP_StartDelay()")
-do_sometimes("C550SideSync()")
+do_sometimes("PXPSideSync()")
 do_sometimes("C550AutoPersistenceData()")
 
 add_macro("C550 Persistence Save", "SavePersistenceData()")
 add_macro("C550 Persistence Load", "ParsePersistenceData()")
 
 
-end -- master end
+-- end -- master end
