@@ -154,10 +154,16 @@ function pxpWritePersistenceData(pxpSwitchData)
 end
 
 function pxpCompilePersistenceData()
-
+    -- Deafult Electrical
     local BAT = get("sim/cockpit/electrical/battery_on") -- Batt Switch
+    local AVN = get("sim/cockpit/electrical/avionics_on") -- Avionics Switch
+    local GENL = get("sim/cockpit/electrical/generator_on", 0) -- Gen Switches 0 Left, 1 Right
+    local GENR = get("sim/cockpit/electrical/generator_on", 1)
+    local GENAPU = get("sim/cockpit/electrical/generator_apu_on")
+
 
 --[[ Deafulat Datarefs
+    local INV = get("thranda/electrical/AC_InverterSwitch") -- Inverter Switch
     local GPU = get("sim/cockpit/electrical/gpu_on")
     local DOOR0 = get("sim/cockpit2/switches/door_open", 0) -- 0 Main, 1 Left Bag, 2 Right Bag
     local DOOR1 = get("sim/cockpit2/switches/door_open", 1) -- 0 Main, 1 Left Bag, 2 Right Bag
@@ -173,11 +179,7 @@ function pxpCompilePersistenceData()
     local DME1_RCV = get("sim/cockpit2/radios/actuators/audio_dme_enabled") -- DME Recieve
     local MRKR_RCV = get("sim/cockpit2/radios/actuators/audio_marker_enabled") -- Marker Recieve
 
-    local GENL = get("sim/cockpit/electrical/generator_on", 0) -- Gen Switches 0 Left, 1 Right
-    local GENR = get("sim/cockpit/electrical/generator_on", 1)
     
-    local INV = get("thranda/electrical/AC_InverterSwitch") -- Inverter Switch
-    local AVN = get("sim/cockpit/electrical/avionics_on") -- Avionics Switch
     local BOOST_PMP1 = get("sim/cockpit/engine/fuel_pump_on", 0) -- Fuel Pumps, 0 Left, 1 Right
     local BOOST_PMP2 = get("sim/cockpit/engine/fuel_pump_on", 1)
     local IGN1 = get("sim/cockpit/engine/igniters_on", 0) -- Ignition 0 Left 1 Right
@@ -279,12 +281,19 @@ function pxpCompilePersistenceData()
 
     pxpSwitchData = {
         PersistenceData = {
+            --Deafault Electrical
             BAT = BAT,
+            AVN = AVN,
+            GENL = GENL,
+            GENR = GENR,
+            GENAPU = GENAPU,
+
             --[[LYOKE = LYOKE,
             RYOKE = RYOKE,
             LARM = LARM,
             RARM = RARM,
             GPU = GPU,
+            INV = INV,
             WREFL = WREFL,
             IREFL = IREFL,
             COVERS = COVERS,
@@ -303,10 +312,6 @@ function pxpCompilePersistenceData()
             MRKR_RCV = MRKR_RCV,
             VOLT_SEL = VOLT_SEL,
             TEST_SEL = TEST_SEL,
-            GENL = GENL,
-            GENR = GENR,
-            INV = INV,
-            AVN = AVN,
             BOOST_PMP1 = BOOST_PMP1,
             BOOST_PMP2 = BOOST_PMP2,
             IGN1 = IGN1,
@@ -399,9 +404,16 @@ function pxpParsePersistenceData()
 	if f ~= nil then 
 		io.close(f) 
         pxpSwitchData = LIP.load(AIRCRAFT_PATH .. "/pxpPersistence.ini")
+        --Default Electrical
         set("sim/cockpit/electrical/battery_on", pxpSwitchData.PersistenceData.BAT) -- Batt Switch
+        set("sim/cockpit/electrical/avionics_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
+        set_array("sim/cockpit/electrical/generator_on", 0, pxpSwitchData.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
+        set_array("sim/cockpit/electrical/generator_on", 1, pxpSwitchData.PersistenceData.GENR)
+        set("sim/cockpit/electrical/generator_apu_on", pxpSwitchData.PersistenceData.GENPAU)
+    
 
 --[[
+        set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV) -- Inverter Switch
         set("thranda/cockpit/actuators/HideYokeL", pxpSwitchData.PersistenceData.LYOKE)
         set("thranda/cockpit/actuators/HideYokeR", pxpSwitchData.PersistenceData.RYOKE) -- Right Yoke
         set("thranda/cockpit/animations/ArmRestLR", pxpSwitchData.PersistenceData.LARM) -- Left Arm Rests
@@ -426,10 +438,6 @@ function pxpParsePersistenceData()
 
         set("thranda/actuators/VoltSelAct", pxpSwitchData.PersistenceData.VOLT_SEL) -- Volt Selector
         set("thranda/annunciators/AnnunTestKnob", pxpSwitchData.PersistenceData.TEST_SEL) -- Test Selector
-        set_array("sim/cockpit/electrical/generator_on", 0, pxpSwitchData.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
-        set_array("sim/cockpit/electrical/generator_on", 1, pxpSwitchData.PersistenceData.GENR)
-        set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV) -- Inverter Switch
-        set("sim/cockpit/electrical/avionics_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
         set_array("sim/cockpit/engine/fuel_pump_on", 0, pxpSwitchData.PersistenceData.BOOST_PMP1) -- Fuel Pumps, 0 Left, 1 Right
         set_array("sim/cockpit/engine/fuel_pump_on", 1, pxpSwitchData.PersistenceData.BOOST_PMP2)
         set_array("sim/cockpit/engine/igniters_on", 0, pxpSwitchData.PersistenceData.IGN1) -- Ignition 0 Left 1 Right
