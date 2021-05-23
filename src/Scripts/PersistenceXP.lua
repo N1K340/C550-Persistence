@@ -18,11 +18,15 @@ require "graphics"
 
 -- Main Script Variables
 local pxpSwitchData = {}
+local pxpSettings = {}
 local pxpScriptLoaded = false
+local pxpSettingsLoaded = false
 local pxpScriptLoadTimer = 3
 local pxpScriptStartedTime = 0
 local pxpScriptReady = false
 local pxpUseScript = false
+local pxpDelayInt = 10
+local pxpSettingsWindow = false
 
 -- Script Datarefs
 dataref("SIM_TIME", "sim/time/total_running_time_sec")
@@ -40,11 +44,102 @@ function pxpCompileSettings()
     pxpSettings = {
         pxpSettings = {
             pxpUseScript = pxpUseScript,
+            pxpDelayInt = pxpDelayInt,
         }
     }    
 end
 
+function pxpParseSettings()
+    local f = io.open(AIRCRAFT_PATH .. "/pxpSettings.ini", "r")
+    if f ~= nil then
+        io.close(f)
+        pxpSettings = LIP.load(AIRCRAFT_PATH .. "/pxpSettings.ini")
+        pxpUseScript = pxpSettings.pxpSettings.pxpUseScript
+        print("PersistenceXP Settings Loaded")
+        print("PersistenceXP enabled for aircraft: " .. tostring(pxpUseScript))
+    else
+        print("PersistenceXP Settings file for aircraft not found")
+    end    
+end
 
+-- Initialise Script
+
+function pxpStartDelay()
+    if not pxpSettingsLoaded then
+        pxpParseSettings()
+        pxpSettingsLoaded = true
+    elseif pxpSettingsLoaded and not pxpScriptReady then
+        if pxpScriptStartedTime == 0 then
+            pxpScriptStartedTime = (SIM_TIME + pxpDelayInt)
+        end
+        if (SIM_TIME < pxpScriptStartedTime) then
+            print("Not Ready")
+            return
+        end
+        print("Ready")
+        pxpScriptReady = true 
+    end  
+end
+
+do_often("pxpStartDelay()")
+
+-- Settings UI
+-- Create and Destroy Settings Window
+function pxpOpenSettings_wnd()
+	pxpParseSettings()
+	pxpSettings_wnd = float_wnd_create(450,200,1, true)
+	float_wnd_set_title(pxpSettings_wnd, "PersistenceXP Settings")
+	float_wnd_set_imgui_builder(pxpSettings_wnd, "pxpSettings_content")
+	float_wnd_set_onclose(pxpSettings_wnd, "pxpCloseSettings_wnd")
+end
+
+function pxpCloseSettings_wnd()
+	if pxpSettings_wnd then
+		float_wnd_destroy(pxpSettings_wnd)
+	end
+end
+
+-- Contents of Settings Window
+function pxpSettings_content(pxpSettings_wnd, x, y)
+	local winWidth = imgui.GetWindowWidth()
+	local winHeight = imgui.GetWindowHeight()
+	local titleText = "PersistenceXP Settings"
+	local titleTextWidth, titleTextHeight = imgui.CalcTextSize(titleText)
+	
+	imgui.SetCursorPos(winWidth / 2 - titleTextWidth / 2, imgui.GetCursorPosY())
+	imgui.TextUnformatted(titleText)
+	
+	imgui.Separator()
+        imgui.TextUnformatted("")
+        imgui.SetCursorPos(20, imgui.GetCursorPosY())
+        local changed, newVal = imgui.Checkbox("Use PersistenceXP with this aircraft?", pxpUseScript)
+        if changed then
+            pxpUseScript = newVal
+            pxpCompileSettings()
+            print("PersistenceXP: Plugin enabled changed to " .. tostring(pxpUseScript))
+        end
+end
+
+add_macro("View PersistenceXP Settings", "pxpOpenSettings_wnd()", "pxpCloseSettings_wnd()", "deactivate")
+
+
+-- Main Function Call
+
+function C550AutoPersistenceData()
+    if pxpScriptLoadTimer < 3 then
+       pxpScriptLoadTimer = pxpScriptLoadTimer + 1
+    end
+    if pxpScriptLoaded and pxpScriptLoadTimer == 3 and PRK_BRK == 1 and ENG1_RUN == 0 then
+        SavePersistenceData()
+        pxpScriptLoadTimer = 0
+    end
+    if pxpScriptReady and not pxpScriptLoaded then
+        ParsePersistenceData() 
+        pxpScriptLoaded = true
+    end
+end
+
+--[[ Save and Load Switch Positions
 
 function WritePersistenceData(pxpSwitchData)
     LIP.save(AIRCRAFT_PATH .. "/C550Persistence.ini", pxpSwitchData)
@@ -423,20 +518,6 @@ function ParsePersistenceData()
     print("C550 Persistence: Position data loaded from " .. AIRCRAFT_PATH .. "C550Persistence.ini")
 end
 
-function C550AutoPersistenceData()
-    if pxpScriptLoadTimer < 3 then
-       pxpScriptLoadTimer = pxpScriptLoadTimer + 1
-    end
-    if pxpScriptLoaded and pxpScriptLoadTimer == 3 and PRK_BRK == 1 and ENG1_RUN == 0 then
-        SavePersistenceData()
-        pxpScriptLoadTimer = 0
-    end
-    if pxpScriptReady and not pxpScriptLoaded then
-        ParsePersistenceData() 
-        pxpScriptLoaded = true
-    end
-end
-
 function PXPSideSync()
     local Baro = 0
     local SpdBug = 0
@@ -451,17 +532,9 @@ function PXPSideSync()
     end
 end
 
-function C550FSEP_StartDelay()
-    if pxpScriptStartedTime == 0 then
-        pxpScriptStartedTime = (SIM_TIME + 10)
-    end
-    if (SIM_TIME < pxpScriptStartedTime) then
-        return
-    end
-    pxpScriptReady = true    
-end
 
-do_often("C550FSEP_StartDelay()")
+
+
 do_sometimes("PXPSideSync()")
 do_sometimes("C550AutoPersistenceData()")
 
@@ -469,4 +542,4 @@ add_macro("C550 Persistence Save", "SavePersistenceData()")
 add_macro("C550 Persistence Load", "ParsePersistenceData()")
 
 
--- end -- master end
+]]-- end -- master end
