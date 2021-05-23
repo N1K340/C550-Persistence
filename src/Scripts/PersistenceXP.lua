@@ -8,10 +8,6 @@ Objective:
 
 
 
--- if PLANE_ICAO == "C550" then
-
-
-
 -- Modules
 local LIP = require("LIP")
 require "graphics"
@@ -26,7 +22,6 @@ local pxpScriptStartedTime = 0
 local pxpScriptReady = false
 local pxpUseScript = false
 local pxpDelayInt = 10
-local pxpSettingsWindow = false
 
 -- Script Datarefs
 dataref("SIM_TIME", "sim/time/total_running_time_sec")
@@ -143,8 +138,8 @@ end
 
 do_sometimes("pxpAutoPersistenceData()")
 
-add_macro("PersistenceXP Save Panel State", "SavePersistenceData()")
-add_macro("PersistenceXP Load Panel State", "ParsePersistenceData()")
+add_macro("PersistenceXP Save Panel State", "pxpCompilePersistenceData()")
+add_macro("PersistenceXP Load Panel State", "pxpParsePersistenceData()")
 
 -- Save and Load Panel Data Functions
 
@@ -160,6 +155,8 @@ function pxpCompilePersistenceData()
     local GENL = get("sim/cockpit/electrical/generator_on", 0) -- Gen Switches 0 Left, 1 Right
     local GENR = get("sim/cockpit/electrical/generator_on", 1)
     local GENAPU = get("sim/cockpit/electrical/generator_apu_on")
+    
+
 
 
 --[[ Deafulat Datarefs
@@ -288,6 +285,7 @@ function pxpCompilePersistenceData()
             GENR = GENR,
             GENAPU = GENAPU,
 
+
             --[[LYOKE = LYOKE,
             RYOKE = RYOKE,
             LARM = LARM,
@@ -409,7 +407,7 @@ function pxpParsePersistenceData()
         set("sim/cockpit/electrical/avionics_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
         set_array("sim/cockpit/electrical/generator_on", 0, pxpSwitchData.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
         set_array("sim/cockpit/electrical/generator_on", 1, pxpSwitchData.PersistenceData.GENR)
-        set("sim/cockpit/electrical/generator_apu_on", pxpSwitchData.PersistenceData.GENPAU)
+        set("sim/cockpit/electrical/generator_apu_on", pxpSwitchData.PersistenceData.GENAPU)
     
 
 --[[
