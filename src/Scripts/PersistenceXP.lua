@@ -10,6 +10,8 @@ Objective:
 
 -- if PLANE_ICAO == "C550" then
 
+
+
 -- Modules
 local LIP = require("LIP")
 require "graphics"
@@ -20,12 +22,28 @@ local C550FSEP_Loaded = false
 local C550FSEPtimer = 3
 local C550FSEPStartTime = 0
 local C550FSEPready = false
+local pxpUseScript = false
 
 -- Script Datarefs
 dataref("SIM_TIME", "sim/time/total_running_time_sec")
 dataref("PRK_BRK", "sim/flightmodel/controls/parkbrake")
 dataref("ENG1_RUN", "sim/flightmodel/engine/ENGN_running", 0)
 dataref("ENG2_RUN", "sim/flightmodel/engine/ENGN_running", 1)
+
+-- Save and Load Settings only
+function pxpWriteSettings(pxpSettings)
+    LIP.save(AIRCRAFT_PATH .. "/xpxSettings.ini", pxpSettings)
+    print("Persistence XP Settings Saved")
+end
+
+function pxpCompileSettings()
+    pxpSettings = {
+        pxpSettings = {
+            pxpUseScript = pxpUseScript,
+        }
+    }    
+end
+
 
 
 function WritePersistenceData(C550fsePersistenceSettings)
