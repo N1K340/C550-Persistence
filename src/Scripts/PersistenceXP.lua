@@ -42,11 +42,12 @@ end
 
 function pxpCompileSettings()
     pxpSettings = {
-        pxpSettings = {
+        settings = {
             pxpUseScript = pxpUseScript,
             pxpDelayInt = pxpDelayInt,
         }
-    }    
+    }
+    pxpWriteSettings(pxpSettings)    
 end
 
 function pxpParseSettings()
@@ -54,7 +55,8 @@ function pxpParseSettings()
     if f ~= nil then
         io.close(f)
         pxpSettings = LIP.load(AIRCRAFT_PATH .. "/pxpSettings.ini")
-        pxpUseScript = pxpSettings.pxpSettings.pxpUseScript
+        pxpUseScript = pxpSettings.settings.pxpUseScript
+        pxpDelayInt = pxpSettings.settings.pxpDelayInt
         print("PersistenceXP Settings Loaded")
         print("PersistenceXP enabled for aircraft: " .. tostring(pxpUseScript))
     else
