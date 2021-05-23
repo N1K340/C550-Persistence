@@ -151,7 +151,7 @@ end
 function pxpCompilePersistenceData()
     -- Deafult Electrical
     local BAT = get("sim/cockpit/electrical/battery_on") -- Batt Switch
-    local AVN = get("sim/cockpit/electrical/avionics_power_on") -- Avionics Switch
+    local AVN = get("sim/cockpit2/switches/avionics_power_on") -- Avionics Switch
     local GENL = get("sim/cockpit/electrical/generator_on", 0) -- Gen Switches 0 Left, 1 Right
     local GENR = get("sim/cockpit/electrical/generator_on", 1)
     local GENAPU = get("sim/cockpit/electrical/generator_apu_on")
@@ -163,6 +163,7 @@ function pxpCompilePersistenceData()
     local STROBE = get("sim/cockpit2/switches/strobe_lights_on")
     local LNDLIGHT = get("sim/cockpit2/switches/landing_lights_on")
     local TAXILIGHT = get("sim/cockpit2/switches/taxi_light_on")
+
 
     -- Doors
     local DOOR0 = get("sim/cockpit2/switches/door_open", 0) -- 0 Main, 1 Left Bag, 2 Right Bag
@@ -249,12 +250,14 @@ function pxpCompilePersistenceData()
     local ENG_AI2 = get("sim/cockpit/switches/anti_ice_engine_air", 1)
     local WING_BOOT = get("sim/cockpit2/ice/ice_surface_boot_on") 
     local WING_HEAT = get("sim/cockpit2/ice/ice_surfce_heat_on")
+    local PROP_HEAT = get("sim/cockpit2/ice/ice_prop_heat_on")
 
     -- Controls
     local TRIM = get("sim/cockpit2/controls/elevator_trim")
     local SPD_BRK = get("sim/cockpit2/controls/speedbrake_ratio")
     local FLP_HNDL = get("sim/cockpit2/controls/flap_ratio")
     local FAN_SYNC = get("sim/cockpit2/switches/jet_sync_mode")
+    local PROP_SYNC = get("sim/cockpit2/switches/prop_sync_on")
     local THRTL = get("sim/cockpit2/engine/actuators/throttle_ratio_all")
     local PROP = get("sim/cockpit2/engine/actuators/prop_ratio_all")
     local MIX = get("sim/cockpit2/engine/actuators/mixture_ratio_all")
@@ -431,12 +434,14 @@ function pxpCompilePersistenceData()
             ENG_AI2 = ENG_AI2,
             WING_BOOT = WING_BOOT,
             WING_HEAT = WING_HEAT,
+            PROP_HEAT = PROP_HEAT,
 
             -- Controls
             TRIM = TRIM,
             SPD_BRK = SPD_BRK,
             FLP_HNDL = FLP_HNDL,
             FAN_SYNC = FAN_SYNC,
+            PROP_SYNC = PROP_SYNC,
             THRTL = THRTL,
             PROP = PROP,
             MIX = MIX,
@@ -513,7 +518,7 @@ function pxpParsePersistenceData()
         pxpSwitchData = LIP.load(AIRCRAFT_PATH .. "/pxpPersistence.ini")
         --Default Electrical
         set("sim/cockpit/electrical/battery_on", pxpSwitchData.PersistenceData.BAT) -- Batt Switch
-        set("sim/cockpit/electrical/avionics_power_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
+        set("sim/cockpit2/switches/avionics_power_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
         set_array("sim/cockpit/electrical/generator_on", 0, pxpSwitchData.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
         set_array("sim/cockpit/electrical/generator_on", 1, pxpSwitchData.PersistenceData.GENR)
         set("sim/cockpit/electrical/generator_apu_on", pxpSwitchData.PersistenceData.GENAPU)
@@ -523,7 +528,10 @@ function pxpParsePersistenceData()
         set("sim/cockpit2/switches/navigation_lights_on", pxpSwitchData.PersistenceData.Nav_LT)
         set("sim/cockpit2/switches/beacon_on", pxpSwitchData.PersistenceData.BCN)
         set("sim/cockpit2/switches/strobe_lights_on", pxpSwitchData.PersistenceData.STROBE)
-        set("sim/cockpit2/switches/landing_lights_on", pxpSwitchData.PersistenceData.LNDLIGHT)
+        set_array("sim/cockpit2/switches/landing_lights_on", 0, pxpSwitchData.PersistenceData.LNDLIGHT)
+        set_array("sim/cockpit2/switches/landing_lights_on", 1, pxpSwitchData.PersistenceData.LNDLIGHT)
+        set_array("sim/cockpit2/switches/landing_lights_on", 2, pxpSwitchData.PersistenceData.LNDLIGHT)
+        set_array("sim/cockpit2/switches/landing_lights_on", 3, pxpSwitchData.PersistenceData.LNDLIGHT)
         set("sim/cockpit2/switches/taxi_light_on", pxpSwitchData.PersistenceData.TAXILIGHT)
 
         --Doors
@@ -612,12 +620,15 @@ function pxpParsePersistenceData()
         set_array("sim/cockpit/switches/anti_ice_engine_air", 1, pxpSwitchData.PersistenceData.ENG_AI2)
         set("sim/cockpit2/ice/ice_surface_boot_on", pxpSwitchData.PersistenceData.WING_BOOT) 
         set("sim/cockpit2/ice/ice_surfce_heat_on", pxpSwitchData.PersistenceData.WING_HEAT)
+        set("sim/cockpit2/ice/ice_prop_heat_on", pxpSwitchData.PersistenceData.PROP_HEAT)
+
 
         -- Controls
         set("sim/cockpit2/controls/elevator_trim", pxpSwitchData.PersistenceData.TRIM)
         set("sim/cockpit2/controls/speedbrake_ratio", pxpSwitchData.PersistenceData.SPD_BRK)
         set("sim/cockpit2/controls/flap_ratio", pxpSwitchData.PersistenceData.FLP_HNDL)
         set("sim/cockpit2/switches/jet_sync_mode", pxpSwitchData.PersistenceData.FAN_SYNC)
+        set("sim/cockpit2/switches/prop_sync_on", pxpSwitchData.PersistenceData.PROP_SYNC)
         set("sim/cockpit2/engine/actuators/throttle_ratio_all", pxpSwitchData.PersistenceData.THRTL)
         set("sim/cockpit2/engine/actuators/prop_ratio_all", pxpSwitchData.PersistenceData.PROP)
         set("sim/cockpit2/engine/actuators/mixture_ratio_all", pxpSwitchData.PersistenceData.MIX)
