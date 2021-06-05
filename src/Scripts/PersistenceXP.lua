@@ -22,6 +22,8 @@ local pxpScriptStartedTime = 0
 local pxpScriptReady = false
 local pxpUseScript = false
 local pxpDelayInt = 10
+local loadedAircraft = nil
+-- globalLUA PLANE_TAILNUMBER
 
 -- Script Datarefs
 dataref("SIM_TIME", "sim/time/total_running_time_sec")
@@ -31,7 +33,7 @@ dataref("ENG2_RUN", "sim/flightmodel/engine/ENGN_running", 1)
 
 -- Save and Load Settings only
 function pxpWriteSettings(pxpSettings)
-    LIP.save(AIRCRAFT_PATH .. "/xpxSettings.ini", pxpSettings)
+    LIP.save(AIRCRAFT_PATH .. "/pxpSettings.ini", pxpSettings)
     print("Persistence XP Settings Saved")
 end
 
@@ -70,10 +72,11 @@ function pxpStartDelay()
             pxpScriptStartedTime = (SIM_TIME + pxpDelayInt)
         end
         if (SIM_TIME < pxpScriptStartedTime) then
-            print("Not Ready")
+            print("PXP Waiting or Paused")
             return
         end
-        print("Ready")
+        loadedAircraft = AIRCRAFT_FILENAME
+        print("PXP Ready for " .. AIRCRAFT_FILENAME)
         pxpScriptReady = true 
     end  
 end
@@ -150,76 +153,259 @@ end
 
 function pxpCompilePersistenceData()
     -- Deafult Electrical
-    local BAT = get("sim/cockpit/electrical/battery_on") -- Batt Switch
-    local AVN = get("sim/cockpit2/switches/avionics_power_on") -- Avionics Switch
-    local GENL = get("sim/cockpit/electrical/generator_on", 0) -- Gen Switches 0 Left, 1 Right
-    local GENR = get("sim/cockpit/electrical/generator_on", 1)
-    local GENAPU = get("sim/cockpit/electrical/generator_apu_on")
-    local GPU = get("sim/cockpit/electrical/gpu_on")
+    local BAT = nil
+    local AVN = nil
+    local GENL = nil
+    local GENR = nil
+    local GENAPU = nil
+    local GPU = nil
+
+    if (XPLMFindDataRef("sim/cockpit/electrical/battery_on") ~= nil) then
+        BAT = get("sim/cockpit/electrical/battery_on")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/switches/avionics_power_on") ~= nil) then
+        AVN = get("sim/cockpit2/switches/avionics_power_on")
+    end
+    if (XPLMFindDataRef("sim/cockpit/electrical/generator_on", 0) ~= nil) then
+        GENL = get("sim/cockpit/electrical/generator_on", 0)
+    end
+    if (XPLMFindDataRef("sim/cockpit/electrical/generator_on", 1) ~= nil) then
+        GENR = get("sim/cockpit/electrical/generator_on", 1)
+    end
+    if (XPLMFindDataRef("sim/cockpit/electrical/generator_apu_on") ~= nil) then
+        GENAPU = get("sim/cockpit/electrical/generator_apu_on")
+    end
+    if (XPLMFindDataRef("sim/cockpit/electrical/gpu_on") ~= nil) then
+        GPU = get("sim/cockpit/electrical/gpu_on")
+    end
 
     -- Deafult Lighting
-    local Nav_LT = get("sim/cockpit2/switches/navigation_lights_on")
-    local BCN = get("sim/cockpit2/switches/beacon_on")
-    local STROBE = get("sim/cockpit2/switches/strobe_lights_on")
-    local LNDLIGHT = get("sim/cockpit2/switches/landing_lights_on")
-    local TAXILIGHT = get("sim/cockpit2/switches/taxi_light_on")
+    local Nav_LT = nil
+    local BCN = nil
+    local STROBE = nil
+    local LNDLIGHT = nil
+    local TAXILIGHT = nil
+
+    if (XPLMFindDataRef("sim/cockpit2/switches/navigation_lights_on") ~= nil) then
+        Nav_LT = get("sim/cockpit2/switches/navigation_lights_on")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/switches/beacon_on") ~= nil) then
+        BCN = get("sim/cockpit2/switches/beacon_on")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/switches/strobe_lights_on") ~= nil) then
+        STROBE = get("sim/cockpit2/switches/strobe_lights_on")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/switches/landing_lights_on") ~= nil) then
+        LNDLIGHT = get("sim/cockpit2/switches/landing_lights_on")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/switches/taxi_light_on") ~= nil) then
+        TAXILIGHT = get("sim/cockpit2/switches/taxi_light_on")
+    end
 
 
     -- Doors
-    local DOOR0 = get("sim/cockpit2/switches/door_open", 0) -- 0 Main, 1 Left Bag, 2 Right Bag
-    local DOOR1 = get("sim/cockpit2/switches/door_open", 1) -- 0 Main, 1 Left Bag, 2 Right Bag
-    local DOOR2 = get("sim/cockpit2/switches/door_open", 2) -- 0 Main, 1 Left Bag, 2 Right Bag
+    local DOOR0 = nil -- 0 Main, 1 Left Bag, 2 Right Bag
+    local DOOR1 = nil
+    local DOOR2 = nil
+
+    if (XPLMFindDataRef("sim/cockpit2/switches/door_open", 0) ~= nil) then
+        DOOR0 = get("sim/cockpit2/switches/door_open", 0)
+    end
+    if (XPLMFindDataRef("sim/cockpit2/switches/door_open", 1) ~= nil) then
+        DOOR1 = get("sim/cockpit2/switches/door_open", 1)
+    end
+    if (XPLMFindDataRef("sim/cockpit2/switches/door_open", 2) ~= nil) then
+        DOOR2 = get("sim/cockpit2/switches/door_open", 2)
+    end
 
     --Com Select
-    local NAV1_PWR = get("sim/cockpit2/radios/actuators/nav1_power")
-    local NAV2_PWR = get("sim/cockpit2/radios/actuators/nav2_power")
-    local COM1_PWR = get("sim/cockpit2/radios/actuators/com1_power")
-    local COM2_PWR = get("sim/cockpit2/radios/actuators/com2_power")
-    local ADF1_PWR = get("sim/cockpit2/radios/actuators/adf1_power")
-    local ADF2_PWR = get("sim/cockpit2/radios/actuators/adf2_power")
-    local GPS1_PWR = get("sim/cockpit2/radios/actuators/gps_power")
-    local GPS2_PWR = get("sim/cockpit2/radios/actuators/gps2_power")
-    local DME_PWR = get("sim/cockpit2/radios/actuators/dme_power")
+    local NAV1_PWR = nil
+    local NAV2_PWR = nil
+    local COM1_PWR = nil
+    local COM2_PWR = nil
+    local ADF1_PWR = nil
+    local ADF2_PWR = nil
+    local GPS1_PWR = nil
+    local GPS2_PWR = nil
+    local DME_PWR = nil
 
-    local XMT = get("sim/cockpit2/radios/actuators/audio_com_selection_man") -- Transmit Selector
-    local C1_RCV = get("sim/cockpit2/radios/actuators/audio_selection_com1") -- Com 1 Receives
-    local C2_RCV = get("sim/cockpit2/radios/actuators/audio_selection_com2") -- Com 2 Receives
-    local ADF1_RCV = get("sim/cockpit2/radios/actuators/audio_selection_adf1") -- ADF 1 Receives
-    local ADF2_RCV = get("sim/cockpit2/radios/actuators/audio_selection_adf1") -- ADF 2 Receives
-    local NAV1_RCV = get("sim/cockpit2/radios/actuators/audio_selection_nav1") -- NAV 1 Receives
-    local NAV2_RCV = get("sim/cockpit2/radios/actuators/audio_selection_nav2") -- NAV 2 Receives
-    local DME1_RCV = get("sim/cockpit2/radios/actuators/audio_dme_enabled") -- DME Recieve
-    local MRKR_RCV = get("sim/cockpit2/radios/actuators/audio_marker_enabled") -- Marker Recieve
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/nav1_power") ~= nil) then
+        NAV1_PWR = get("sim/cockpit2/radios/actuators/nav1_power")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/nav2_power") ~= nil) then
+        NAV2_PWR = get("sim/cockpit2/radios/actuators/nav2_power")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/com1_power") ~= nil) then
+        COM1_PWR = get("sim/cockpit2/radios/actuators/com1_power")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/com2_power") ~= nil) then
+        COM2_PWR = get("sim/cockpit2/radios/actuators/com2_power")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/adf1_power") ~= nil) then
+        ADF1_PWR = get("sim/cockpit2/radios/actuators/adf1_power")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/adf2_power") ~= nil) then
+        ADF2_PWR = get("sim/cockpit2/radios/actuators/adf2_power")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/gps_power") ~= nil) then
+        GPS1_PWR = get("sim/cockpit2/radios/actuators/gps_power")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/gps2_power") ~= nil) then
+        GPS2_PWR = get("sim/cockpit2/radios/actuators/gps2_power")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/dme_power") ~= nil) then
+        DME_PWR = get("sim/cockpit2/radios/actuators/dme_power")
+    end
 
-    local NAV1_ACT = get("sim/cockpit/radios/nav1_freq_hz")
-    local NAV1_STB = get("sim/cockpit/radios/nav1_stdby_freq_hz")
-    local NAV2_ACT = get("sim/cockpit/radios/nav1_freq_hz")
-    local NAV2_STB = get("sim/cockpit/radios/nav1_stdby_freq_hz")
-    local COM1_ACT = get("sim/cockpit/radios/com1_freq_hz")
-    local COM1_STB = get("sim/cockpit/radios/com1_stdby_freq_hz")
-    local COM2_ACT = get("sim/cockpit/radios/com2_freq_hz")
-    local COM2_STB = get("sim/cockpit/radios/com2_stdby_freq_hz")
-    local ADF1_ACT = get("sim/cockpit/radios/adf1_freq_hz")
-    local ADF1_STB = get("sim/cockpit/radios/adf1_stdby_freq_hz")
-    local ADF2_ACT = get("sim/cockpit/radios/adf2_freq_hz")
-    local ADF2_STB = get("sim/cockpit/radios/adf2_stdby_freq_hz")  
-    local XPDR_COD = get("sim/cockpit/radios/transponder_code")
-    local XPDR_MODE = get("sim/cockpit2/radios/actuators/transponder_mode")
+    local XMT = nil
+    local C1_RCV = nil
+    local C2_RCV = nil
+    local ADF1_RCV = nil
+    local ADF2_RCV = nil
+    local NAV1_RCV = nil
+    local NAV2_RCV = nil
+    local DME1_RCV = nil
+    local MRKR_RCV = nil
 
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_com_selection_man") ~= nil) then
+        XMT = get("sim/cockpit2/radios/actuators/audio_com_selection_man")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_com1") ~= nil) then
+        C1_RCV = get("sim/cockpit2/radios/actuators/audio_selection_com1")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_com2") ~= nil) then
+        C2_RCV = get("sim/cockpit2/radios/actuators/audio_selection_com2")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_adf1") ~= nil) then
+        ADF1_RCV = get("sim/cockpit2/radios/actuators/audio_selection_adf1")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_adf2") ~= nil) then
+        ADF2_RCV = get("sim/cockpit2/radios/actuators/audio_selection_adf2")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_nav1") ~= nil) then
+        NAV1_RCV = get("sim/cockpit2/radios/actuators/audio_selection_nav1")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_nav2") ~= nil) then
+        NAV2_RCV = get("sim/cockpit2/radios/actuators/audio_selection_nav2")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_dme_enabled") ~= nil) then
+        DME1_RCV = get("sim/cockpit2/radios/actuators/audio_dme_enabled")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_marker_enabled") ~= nil) then
+        MRKR_RCV = get("sim/cockpit2/radios/actuators/audio_marker_enabled")
+    end
+    
+
+    local NAV1_ACT = nil
+    local NAV1_STB = nil
+    local NAV2_ACT = nil
+    local NAV2_STB = nil
+    local COM1_ACT = nil
+    local COM1_STB = nil
+    local COM2_ACT = nil
+    local COM2_STB = nil
+    local ADF1_ACT = nil
+    local ADF1_STB = nil
+    local ADF2_ACT = nil
+    local ADF2_STB = nil
+    local XPDR_COD = nil
+    local XPDR_MODE = nil
     local CLK_MODE = get("sim/cockpit2/clock_timer/timer_mode")
 
+    if (XPLMFindDataRef("sim/cockpit/radios/nav1_freq_hz") ~= nil) then
+        NAV1_ACT = get("sim/cockpit/radios/nav1_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/nav1_stdby_freq_hz") ~= nil) then
+        NAV1_STB = get("sim/cockpit/radios/nav1_stdby_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/nav2_freq_hz") ~= nil) then
+        NAV2_ACT = get("sim/cockpit/radios/nav2_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/nav2_stdby_freq_hz") ~= nil) then
+        NAV2_STB = get("sim/cockpit/radios/nav2_stdby_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/com1_freq_hz") ~= nil) then
+        COM1_ACT = get("sim/cockpit/radios/com1_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/com1_stdby_freq_hz") ~= nil) then
+        COM1_STB = get("sim/cockpit/radios/com1_stdby_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/com2_freq_hz") ~= nil) then
+        COM2_ACT = get("sim/cockpit/radios/com2_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/com2_stdby_freq_hz") ~= nil) then
+        COM2_STB = get("sim/cockpit/radios/com2_stdby_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/adf1_freq_hz") ~= nil) then
+        ADF1_ACT = get("sim/cockpit/radios/adf1_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/adf1_stdby_freq_hz") ~= nil) then
+        ADF1_STB = get("sim/cockpit/radios/adf1_stdby_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/adf2_freq_hz") ~= nil) then
+        ADF2_ACT = get("sim/cockpit/radios/adf2_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/adf2_stdby_freq_hz") ~= nil) then
+        ADF2_STB = get("sim/cockpit/radios/adf2_stdby_freq_hz")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/transponder_code") ~= nil) then
+        XPDR_COD = get("sim/cockpit/radios/transponder_code")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/transponder_mode") ~= nil) then
+        XPDR_MODE = get("sim/cockpit2/radios/actuators/transponder_mode")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/clock_timer/timer_mode") ~= nil) then
+        CLK_MODE = get("sim/cockpit2/clock_timer/timer_mode")
+    end
+
+
+
     -- Bugs
-    local HDG = get("sim/cockpit/autopilot/heading_mag")
-    local VS = get("sim/cockpit2/autopilot/vvi_dial_fpm")
-    local APA = get("sim/cockpit2/autopilot/altitude_dial_ft")
-    local SPD_BG = get("sim/cockpit/autopilot/airspeed") -- Speed Bug
-    local RMI_L = get("sim/cockpit/switches/RMI_l_vor_adf_selector") -- Left RMI
-    local RMI_R = get("sim/cockpit/switches/RMI_r_vor_adf_selector") -- Right RMI
-    local DME_CH = get("sim/cockpit2/radios/actuators/DME_mode")
-    local DME_SEL = get("sim/cockpit/switches/DME_distance_or_time")
-    local DH = get("sim/cockpit/misc/radio_altimeter_minimum")
-    local CRS1 = get("sim/cockpit/radios/nav1_obs_degm")
-    local CRS2 = get("sim/cockpit/radios/nav2_obs_degm")
+    local HDG = nil
+    local VS = nil
+    local APA = nil
+    local SPD_BG = nil
+    local RMI_L = nil
+    local RMI_R = nil
+    local DME_CH = nil
+    local DME_SEL = nil
+    local DH = nil
+    local CRS1 = nil
+    local CRS2 = nil
+
+    if (XPLMFindDataRef("sim/cockpit/autopilot/heading_mag") ~= nil) then
+        HDG = get("sim/cockpit/autopilot/heading_mag")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/autopilot/vvi_dial_fpm") ~= nil) then
+        VS = get("sim/cockpit2/autopilot/vvi_dial_fpm")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/autopilot/altitude_dial_ft") ~= nil) then
+        APA = get("sim/cockpit2/autopilot/altitude_dial_ft")
+    end
+    if (XPLMFindDataRef("sim/cockpit/autopilot/airspeed") ~= nil) then
+        SPD_BG = get("sim/cockpit/autopilot/airspeed")
+    end
+    if (XPLMFindDataRef("sim/cockpit/switches/RMI_l_vor_adf_selector") ~= nil) then
+        RMI_L = get("sim/cockpit/switches/RMI_l_vor_adf_selector")
+    end
+    if (XPLMFindDataRef("sim/cockpit/switches/RMI_r_vor_adf_selector") ~= nil) then
+        RMI_R = get("sim/cockpit/switches/RMI_r_vor_adf_selector")
+    end
+    if (XPLMFindDataRef("sim/cockpit2/radios/actuators/DME_mode") ~= nil) then
+        DME_CH = get("sim/cockpit2/radios/actuators/DME_mode")
+    end
+    if (XPLMFindDataRef("sim/cockpit/switches/DME_distance_or_time") ~= nil) then
+        DME_SEL = get("sim/cockpit/switches/DME_distance_or_time")
+    end
+    if (XPLMFindDataRef("sim/cockpit/misc/radio_altimeter_minimum") ~= nil) then
+        DH = get("sim/cockpit/misc/radio_altimeter_minimum")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/nav1_obs_degm") ~= nil) then
+        CRS1 = get("sim/cockpit/radios/nav1_obs_degm")
+    end
+    if (XPLMFindDataRef("sim/cockpit/radios/nav2_obs_degm") ~= nil) then
+        CRS2 = get("sim/cockpit/radios/nav2_obs_degm")
+    end
 
     -- Engine
     local IGN1 = get("sim/cockpit/engine/igniters_on", 0) -- Ignition 0 Left 1 Right
@@ -266,7 +452,15 @@ function pxpCompilePersistenceData()
     local COWL1 = get("sim/cockpit2/engine/actuators/cowl_flap_ratio", 0)
     local COWL2 = get("sim/cockpit2/engine/actuators/cowl_flap_ratio", 1)
 
-
+    -- Carenado Citation II
+    local LYOKE = nil
+    if loadedAircraft == S550_Citation_II.acf then
+        if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
+            LYOKE = get("thranda/cockpit/actuators/HideYokeL")
+        end
+    else
+        print("PXP Skipping Carenado Citation II Ref's")
+    end
 --[[ Deafulat Datarefs
  
  
@@ -302,7 +496,7 @@ function pxpCompilePersistenceData()
 
 
     local INV = get("thranda/electrical/AC_InverterSwitch") -- Inverter Switch
-    local LYOKE = get("thranda/cockpit/actuators/HideYokeL")
+
     local RYOKE = get("thranda/cockpit/actuators/HideYokeR") -- Right Yoke
     local LARM = get("thranda/cockpit/animations/ArmRestLR") -- Left Arm Rests
     local RARM = get("thranda/cockpit/animations/ArmRestRL") -- Right Arm Rest
@@ -517,7 +711,13 @@ function pxpParsePersistenceData()
 		io.close(f) 
         pxpSwitchData = LIP.load(AIRCRAFT_PATH .. "/pxpPersistence.ini")
         --Default Electrical
-        set("sim/cockpit/electrical/battery_on", pxpSwitchData.PersistenceData.BAT) -- Batt Switch
+        if (XPLMFindDataRef("sim/cockpit/electrical/battery_on") ~= nil) then
+            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            set("sim/cockpit/electrical/battery_on", pxpSwitchData.PersistenceData.BAT) -- Batt Switch
+            else print("PersistenceXP Data for ref Batt Switch not found")
+            end
+        else print("PersistenceXP Dataref Batt Switch not found")
+        end
         set("sim/cockpit2/switches/avionics_power_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
         set_array("sim/cockpit/electrical/generator_on", 0, pxpSwitchData.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
         set_array("sim/cockpit/electrical/generator_on", 1, pxpSwitchData.PersistenceData.GENR)
