@@ -587,13 +587,26 @@ function pxpCompilePersistenceData()
         COWL2 = get("sim/cockpit2/engine/actuators/cowl_flap_ratio", 1)
     end
 
-    -- Carenado Citation II
+    -- Custom Aircraft
+    -- Carenado Citation II / Carenado PC12
     local LYOKE = nil
+    local RYOKE = nil
     local LARM = nil
     local RARM = nil
+
+    -- Carenado PC12
+    local LVISARM = nil
+    local LVIS = nil
+    local RVISARM = nil
+    local RVIS = nil
+
+    -- Carenado Citation II
     if loadedAircraft == 'S550_Citation_II.acf' then
         if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
             LYOKE = get("thranda/cockpit/actuators/HideYokeL")
+        end
+        if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeR") ~= nil) then
+            RYOKE = get("thranda/cockpit/actuators/HideYokeR")
         end
         if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestLR") ~= nil) then
             LARM = get("thranda/cockpit/animations/ArmRestLR")
@@ -604,7 +617,51 @@ function pxpCompilePersistenceData()
     else
         print("PXP Skipping Carenado Citation II Ref's")
     end
---[[ Deafulat Datarefs
+
+    -- Carenado PC12
+    if loadedAircraft == 'Car_PC12.acf' then
+        if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
+            LYOKE = get("thranda/cockpit/actuators/HideYokeL")
+        end
+        if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestLR") ~= nil) then
+            LARM = get("thranda/cockpit/animations/ArmRestLR")
+        end
+        if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestRL") ~= nil) then
+            RARM = get("thranda/cockpit/animations/ArmRestRL")
+        end
+        if (XPLMFindDataRef("thranda/cockpit/actuators/VisorSwingL") ~= nil) then
+            LVISARM = get("thranda/cockpit/actuators/VisorSwingL")
+        end
+        if (XPLMFindDataRef("thranda/cockpit/actuators/VisorL") ~= nil) then
+            LVIS = get("thranda/cockpit/actuators/VisorL")
+        end
+        if (XPLMFindDataRef("thranda/cockpit/actuators/VisorSwingR") ~= nil) then
+            RVISARM = get("thranda/cockpit/actuators/VisorSwingR")
+        end
+        if (XPLMFindDataRef("thranda/cockpit/actuators/VisorR") ~= nil) then
+            RVIS = get("thranda/cockpit/actuators/VisorR")
+        end
+    else
+        print("PXP Skipping Carenado PC12 Ref's")
+    end
+
+
+    --[[ Carenado PC12 REP
+
+    LYOKE = thranda/cockpit/actuators/HideYokeL
+    RYOKE = thranda/cockpit/actuators/HideYokeR
+    LARM = thranda/cockpit/animations/ArmRestLR
+    RARM = thranda/cockpit/animations/ArmRestRL
+    Left Visor Arm = thranda/cockpit/actuators/VisorSwingL
+    Left Visor = thranda/cockpit/actuators/VisorL
+
+
+
+
+    ]]
+    
+    
+    --[[ Deafulat Datarefs
  
  
 
@@ -788,8 +845,15 @@ function pxpCompilePersistenceData()
 
             -- Carenado C550
             LYOKE = LYOKE,
+            RYOKE = RYOKE,
             LARM = LARM,
             RARM = RARM,
+
+            -- Carenado PC12
+            LVIS = LVIS,
+            LVISARM = LVISARM,
+            RVIS = RVIS,
+            RVISARM = RVISARM,
 
             --[[
                 
@@ -1368,10 +1432,17 @@ function pxpParsePersistenceData()
             end
         end
 
+        -- Carenado Citaion II
+
         if loadedAircraft == 'S550_Citation_II.acf' then
             if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
                 if pxpSwitchData.PersistenceData.LYOKE ~= nil then
                     set("thranda/cockpit/actuators/HideYokeL", pxpSwitchData.PersistenceData.LYOKE)
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeR") ~= nil) then
+                if pxpSwitchData.PersistenceData.RYOKE ~= nil then
+                    set("thranda/cockpit/actuators/HideYokeR", pxpSwitchData.PersistenceData.RYOKE)
                 end
             end
             if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestLR") ~= nil) then
@@ -1386,6 +1457,53 @@ function pxpParsePersistenceData()
             end
         else
             print("PXP Skipping Carenado Citation II Ref's")
+        end
+
+        -- Carenado PC12
+
+        if loadedAircraft == 'Car_PC12.acf' then
+            if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
+                if pxpSwitchData.PersistenceData.LYOKE ~= nil then
+                    set("thranda/cockpit/actuators/HideYokeL", pxpSwitchData.PersistenceData.LYOKE)
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeR") ~= nil) then
+                if pxpSwitchData.PersistenceData.RYOKE ~= nil then
+                    set("thranda/cockpit/actuators/HideYokeR", pxpSwitchData.PersistenceData.RYOKE)
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestLR") ~= nil) then
+                if pxpSwitchData.PersistenceData.LARM ~= nil then
+                    set("thranda/cockpit/animations/ArmRestLR", pxpSwitchData.PersistenceData.LARM) -- Left Arm Rests
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestRL") ~= nil) then
+                if pxpSwitchData.PersistenceData.RARM ~= nil then
+                    set("thranda/cockpit/animations/ArmRestRL", pxpSwitchData.PersistenceData.RARM) -- Right Arm Rest
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/actuators/VisorSwingL") ~= nil) then
+                if pxpSwitchData.PersistenceData.LVISARM ~= nil then
+                    set("thranda/cockpit/actuators/VisorSwingL", pxpSwitchData.PersistenceData.LVISARM)
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/actuators/VisorL") ~= nil) then
+                if pxpSwitchData.PersistenceData.LVIS ~= nil then
+                    set("thranda/cockpit/actuators/VisorL", pxpSwitchData.PersistenceData.LVIS)
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/actuators/VisorSwingL") ~= nil) then
+                if pxpSwitchData.PersistenceData.RVISARM ~= nil then
+                    set("thranda/cockpit/actuators/VisorSwingR", pxpSwitchData.PersistenceData.RVISARM)
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/actuators/VisorL") ~= nil) then
+                if pxpSwitchData.PersistenceData.RVIS ~= nil then
+                    set("thranda/cockpit/actuators/VisorR", pxpSwitchData.PersistenceData.RVIS)
+                end
+            end
+        else
+            print("PXP Skipping Carenado PC12 Ref's")
         end
 --[[
         set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV) -- Inverter Switch
