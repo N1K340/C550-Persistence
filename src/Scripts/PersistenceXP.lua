@@ -149,7 +149,11 @@ function pxpAutoPersistenceData()
         pxpScriptLoadTimer = 0
     end
     if pxpScriptReady and pxpUseScript and not pxpScriptLoaded then
-        pxpParsePersistenceData() 
+        if PRK_BRK == 1 and ENG1_RUN == 0 then        
+            pxpParsePersistenceData()
+        else
+            print("PersistenceXP Skipping State Load, Park Brake not set or Engine is running.")     
+        end
         pxpScriptLoaded = true
     end
 end
