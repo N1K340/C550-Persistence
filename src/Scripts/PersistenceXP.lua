@@ -21,6 +21,7 @@ local pxpScriptLoadTimer = 3
 local pxpScriptStartedTime = 0
 local pxpScriptReady = false
 local pxpUseScript = false
+local pxpUseBaroSync = false
 local pxpDelayInt = 10
 local loadedAircraft = nil
 -- globalLUA PLANE_TAILNUMBER
@@ -42,6 +43,7 @@ function pxpCompileSettings()
         settings = {
             pxpUseScript = pxpUseScript,
             pxpDelayInt = pxpDelayInt,
+            pxpUseBaroSync = pxpUseBaroSync,
         }
     }
     pxpWriteSettings(pxpSettings)    
@@ -54,6 +56,7 @@ function pxpParseSettings()
         pxpSettings = LIP.load(AIRCRAFT_PATH .. "/pxpSettings.ini")
         pxpUseScript = pxpSettings.settings.pxpUseScript
         pxpDelayInt = pxpSettings.settings.pxpDelayInt
+        pxpUseBaroSync = pxpSettings.settings.pxpUseBaroSync
         print("PersistenceXP Settings Loaded")
         print("PersistenceXP enabled for aircraft: " .. tostring(pxpUseScript))
     else
@@ -117,6 +120,13 @@ function pxpSettings_content(pxpSettings_wnd, x, y)
             pxpUseScript = newVal
             pxpCompileSettings()
             print("PersistenceXP: Plugin enabled changed to " .. tostring(pxpUseScript))
+        end
+        imgui.SetCursorPos(20, imgui.GetCursorPosY())
+        local changed, newVal = imgui.Checkbox("Use Left and Right Baro Sync with this aircraft?", pxpUseBaroSync)
+        if changed then
+            pxpUseBaroSync = newVal
+            pxpCompileSettings()
+            print("PersistenceXP: Baro Sync changed to " .. tostring(pxpUseScript))
         end
 end
 
@@ -769,7 +779,8 @@ function pxpCompilePersistenceData()
 
             -- Carenado C550
             LYOKE = LYOKE,
-
+            LARM = LARM,
+            RARM = RARM,
 
             --[[
                 
@@ -843,49 +854,49 @@ function pxpParsePersistenceData()
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/avionics_power_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.AVN ~= nil then
                 set("sim/cockpit2/switches/avionics_power_on", pxpSwitchData.PersistenceData.AVN) -- Avionics Switch
             end
         end
         if (XPLMFindDataRef("sim/cockpit/electrical/generator_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.GENL ~= nil then
                 set_array("sim/cockpit/electrical/generator_on", 0, pxpSwitchData.PersistenceData.GENL) -- Gen Switches 0 Left, 1 Right
             end
         end
         if (XPLMFindDataRef("sim/cockpit/electrical/generator_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.GENR ~= nil then
                 set_array("sim/cockpit/electrical/generator_on", 1, pxpSwitchData.PersistenceData.GENR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/electrical/generator_apu_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.GENAPU ~= nil then
                 set("sim/cockpit/electrical/generator_apu_on", pxpSwitchData.PersistenceData.GENAPU)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/electrical/gpu_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.GPU ~= nil then
                 set("sim/cockpit/electrical/gpu_on", pxpSwitchData.PersistenceData.GPU)
             end
         end
 
         --Default Lighting
         if (XPLMFindDataRef("sim/cockpit2/switches/navigation_lights_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.Nav_LT ~= nil then
                 set("sim/cockpit2/switches/navigation_lights_on", pxpSwitchData.PersistenceData.Nav_LT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/beacon_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.BCN ~= nil then
                 set("sim/cockpit2/switches/beacon_on", pxpSwitchData.PersistenceData.BCN)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/strobe_lights_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.STROBE ~= nil then
                 set("sim/cockpit2/switches/strobe_lights_on", pxpSwitchData.PersistenceData.STROBE)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/landing_lights_on", 0) ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.LNDLIGHT ~= nil then
                 set_array("sim/cockpit2/switches/landing_lights_on", 0, pxpSwitchData.PersistenceData.LNDLIGHT)
             end
         end
@@ -895,267 +906,458 @@ function pxpParsePersistenceData()
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/landing_lights_on", 2) ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.LNDLIGHT ~= nil then
                 set_array("sim/cockpit2/switches/landing_lights_on", 2, pxpSwitchData.PersistenceData.LNDLIGHT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/landing_lights_on", 3) ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.LNDLIGHT ~= nil then
                 set_array("sim/cockpit2/switches/landing_lights_on", 3, pxpSwitchData.PersistenceData.LNDLIGHT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/taxi_light_on") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.TAXILIGHT ~= nil then
                 set("sim/cockpit2/switches/taxi_light_on", pxpSwitchData.PersistenceData.TAXILIGHT)
             end
         end
 
         --Doors
         if (XPLMFindDataRef("sim/cockpit2/switches/door_open", 0) ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.DOOR0 ~= nil then
                 set_array("sim/cockpit2/switches/door_open", 0, pxpSwitchData.PersistenceData.DOOR0) -- 0 Main, 1 Left Bag, 2 Right Bag
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/door_open", 1) ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.DOOR1 ~= nil then
                 set_array("sim/cockpit2/switches/door_open", 1, pxpSwitchData.PersistenceData.DOOR1) -- 0 Main, 1 Left Bag, 2 Right Bag
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/door_open", 2) ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.DOOR2 ~= nil then
                 set_array("sim/cockpit2/switches/door_open", 2, pxpSwitchData.PersistenceData.DOOR2) -- 0 Main, 1 Left Bag, 2 Right Bag
             end
         end
 
         --Com Select
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/nav1_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.NAV1_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/nav1_power", pxpSwitchData.PersistenceData.NAV1_PWR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/nav2_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.NAV2_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/nav2_power", pxpSwitchData.PersistenceData.NAV2_PWR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/com1_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.COM1_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/com1_power", pxpSwitchData.PersistenceData.COM1_PWR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/com2_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.COM2_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/com2_power", pxpSwitchData.PersistenceData.COM2_PWR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/adf1_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.ADF1_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/adf1_power", pxpSwitchData.PersistenceData.ADF1_PWR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/adf2_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.ADF2_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/adf2_power", pxpSwitchData.PersistenceData.ADF2_PWR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/gps_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.GPS1_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/gps_power", pxpSwitchData.PersistenceData.GPS1_PWR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/gps2_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.GPS2_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/gps2_power", pxpSwitchData.PersistenceData.GPS2_PWR)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/dme_power") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.DME_PWR ~= nil then
                 set("sim/cockpit2/radios/actuators/dme_power", pxpSwitchData.PersistenceData.DME_PWR)
             end
         end
 
 
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_com_selection_man") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.XMT ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_com_selection_man", pxpSwitchData.PersistenceData.XMT) -- Transmit Selector
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_com1") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.C1_RCV ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_selection_com1", pxpSwitchData.PersistenceData.C1_RCV) -- Com 1 Receives
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_com2") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.C2_RCV ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_selection_com2", pxpSwitchData.PersistenceData.C2_RCV) -- Com 2 Receives
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_adf1") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.ADF1_RCV ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_selection_adf1", pxpSwitchData.PersistenceData.ADF1_RCV) -- ADF 1 Receives
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_adf1") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.ADF2_RCV ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_selection_adf1", pxpSwitchData.PersistenceData.ADF2_RCV) -- ADF 2 Receives
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_nav1") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.NAV1_RCV ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_selection_nav1", pxpSwitchData.PersistenceData.NAV1_RCV) -- NAV 1 Receives
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_nav2") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.NAV2_RCV ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_selection_nav2", pxpSwitchData.PersistenceData.NAV2_RCV) -- NAV 2 Receives
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_dme_enabled") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.DME1_RCV ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_dme_enabled", pxpSwitchData.PersistenceData.DME1_RCV) -- DME Recieve
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_marker_enabled") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.MRKR_RCV ~= nil then
                 set("sim/cockpit2/radios/actuators/audio_marker_enabled", pxpSwitchData.PersistenceData.MRKR_RCV) -- Marker Recieve
             end
         end
 
 
         if (XPLMFindDataRef("sim/cockpit/radios/com1_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.COM1_ACT ~= nil then
                 set("sim/cockpit/radios/com1_freq_hz", pxpSwitchData.PersistenceData.COM1_ACT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/com1_stdby_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.COM1_STB ~= nil then
                 set("sim/cockpit/radios/com1_stdby_freq_hz", pxpSwitchData.PersistenceData.COM1_STB)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/com2_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.COM2_ACT ~= nil then
                 set("sim/cockpit/radios/com2_freq_hz", pxpSwitchData.PersistenceData.COM2_ACT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/com2_stdby_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.COM2_STB ~= nil then
                 set("sim/cockpit/radios/com2_stdby_freq_hz", pxpSwitchData.PersistenceData.COM2_STB)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/nav1_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.NAV1_ACT ~= nil then
                 set("sim/cockpit/radios/nav1_freq_hz", pxpSwitchData.PersistenceData.NAV1_ACT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/nav1_stdby_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.NAV1_STB ~= nil then
                 set("sim/cockpit/radios/nav1_stdby_freq_hz", pxpSwitchData.PersistenceData.NAV1_STB)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/nav2_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.NAV2_ACT ~= nil then
                 set("sim/cockpit/radios/nav2_freq_hz", pxpSwitchData.PersistenceData.NAV2_ACT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/nav2_stdby_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.NAV2_STB ~= nil then
                 set("sim/cockpit/radios/nav1_stdby_freq_hz", pxpSwitchData.PersistenceData.NAV2_STB)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/adf1_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.ADF1_ACT ~= nil then
                 set("sim/cockpit/radios/adf1_freq_hz", pxpSwitchData.PersistenceData.ADF1_ACT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/adf1_stdby_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.ADF1_STB ~= nil then
                 set("sim/cockpit/radios/adf1_stdby_freq_hz", pxpSwitchData.PersistenceData.ADF1_STB)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/adf2_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.ADF2_ACT ~= nil then
                 set("sim/cockpit/radios/adf2_freq_hz", pxpSwitchData.PersistenceData.ADF2_ACT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/adf2_stdby_freq_hz") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.ADF2_STB ~= nil then
                 set("sim/cockpit/radios/adf2_stdby_freq_hz", pxpSwitchData.PersistenceData.ADF2_STB)  
             end
         end
         if (XPLMFindDataRef("sim/cockpit/radios/transponder_code") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.XPDR_COD ~= nil then
                 set("sim/cockpit/radios/transponder_code", pxpSwitchData.PersistenceData.XPDR_COD)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/transponder_mode") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.XPDR_MODE ~= nil then
                 set("sim/cockpit2/radios/actuators/transponder_mode", pxpSwitchData.PersistenceData.XPDR_MODE)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/clock_timer/timer_mode") ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.CLK_MODE ~= nil then
                 set("sim/cockpit2/clock_timer/timer_mode", pxpSwitchData.PersistenceData.CLK_MODE)
             end
         end
 
         --Bugs
-        set("sim/cockpit/autopilot/heading_mag", pxpSwitchData.PersistenceData.HDG)
-        set("sim/cockpit2/autopilot/vvi_dial_fpm", pxpSwitchData.PersistenceData.VS)
-        set("sim/cockpit2/autopilot/altitude_dial_ft", pxpSwitchData.PersistenceData.APA)
-        set("sim/cockpit/autopilot/airspeed", pxpSwitchData.PersistenceData.SPD_BG) -- Speed Bug
-        set("sim/cockpit/switches/RMI_l_vor_adf_selector", pxpSwitchData.PersistenceData.RMI_L) -- Left RMI
-        set("sim/cockpit/switches/RMI_r_vor_adf_selector", pxpSwitchData.PersistenceData.RMI_R) -- Right RMI
-        set("sim/cockpit2/radios/actuators/DME_mode", pxpSwitchData.PersistenceData.DME_CH)
-        set("sim/cockpit/switches/DME_distance_or_time", pxpSwitchData.PersistenceData.DME_SEL)
-        set("sim/cockpit/misc/radio_altimeter_minimum", pxpSwitchData.PersistenceData.DH)
-        set("sim/cockpit/radios/nav1_obs_degm", pxpSwitchData.PersistenceData.CRS1)
-        set("sim/cockpit/radios/nav2_obs_degm", pxpSwitchData.PersistenceData.CRS2)
+        if (XPLMFindDataRef("sim/cockpit/autopilot/heading_mag") ~= nil) then
+            if pxpSwitchData.PersistenceData.HDG ~= nil then
+                set("sim/cockpit/autopilot/heading_mag", pxpSwitchData.PersistenceData.HDG)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/autopilot/vvi_dial_fpm") ~= nil) then
+            if pxpSwitchData.PersistenceData.VS ~= nil then
+                set("sim/cockpit2/autopilot/vvi_dial_fpm", pxpSwitchData.PersistenceData.VS)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/autopilot/altitude_dial_ft") ~= nil) then
+            if pxpSwitchData.PersistenceData.APA ~= nil then
+                set("sim/cockpit2/autopilot/altitude_dial_ft", pxpSwitchData.PersistenceData.APA)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/autopilot/airspeed") ~= nil) then
+            if pxpSwitchData.PersistenceData.SPD_BG ~= nil then
+                set("sim/cockpit/autopilot/airspeed", pxpSwitchData.PersistenceData.SPD_BG) -- Speed Bug
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/switches/RMI_l_vor_adf_selector") ~= nil) then
+            if pxpSwitchData.PersistenceData.RMI_L ~= nil then
+                set("sim/cockpit/switches/RMI_l_vor_adf_selector", pxpSwitchData.PersistenceData.RMI_L) -- Left RMI
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/switches/RMI_r_vor_adf_selector") ~= nil) then
+            if pxpSwitchData.PersistenceData.RMI_R ~= nil then
+                set("sim/cockpit/switches/RMI_r_vor_adf_selector", pxpSwitchData.PersistenceData.RMI_R) -- Right RMI
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/radios/actuators/DME_mode") ~= nil) then
+            if pxpSwitchData.PersistenceData.DME_CH ~= nil then
+                set("sim/cockpit2/radios/actuators/DME_mode", pxpSwitchData.PersistenceData.DME_CH)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/switches/DME_distance_or_time") ~= nil) then
+            if pxpSwitchData.PersistenceData.DME_SEL ~= nil then
+                set("sim/cockpit/switches/DME_distance_or_time", pxpSwitchData.PersistenceData.DME_SEL)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/misc/radio_altimeter_minimum") ~= nil) then
+            if pxpSwitchData.PersistenceData.DH ~= nil then
+                set("sim/cockpit/misc/radio_altimeter_minimum", pxpSwitchData.PersistenceData.DH)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/radios/nav1_obs_degm") ~= nil) then
+            if pxpSwitchData.PersistenceData.CRS1 ~= nil then
+                set("sim/cockpit/radios/nav1_obs_degm", pxpSwitchData.PersistenceData.CRS1)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/radios/nav2_obs_degm") ~= nil) then
+            if pxpSwitchData.PersistenceData.CRS2 ~= nil then
+                set("sim/cockpit/radios/nav2_obs_degm", pxpSwitchData.PersistenceData.CRS2)
+            end
+        end
 
         -- Engines
-        set_array("sim/cockpit/engine/igniters_on", 0, pxpSwitchData.PersistenceData.IGN1) -- Ignition 0 Left 1 Right
-        set_array("sim/cockpit/engine/igniters_on", 1, pxpSwitchData.PersistenceData.IGN2)
-        set_array("sim/cockpit/engine/ignition_on", 0, pxpSwitchData.PersistenceData.MAG1) -- Ignition 0 Left 1 Right
-        set_array("sim/cockpit/engine/ignition_on", 1, pxpSwitchData.PersistenceData.MAG2)
+        if (XPLMFindDataRef("sim/cockpit/engine/igniters_on", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.IGN1 ~= nil then
+                set_array("sim/cockpit/engine/igniters_on", 0, pxpSwitchData.PersistenceData.IGN1) -- Ignition 0 Left 1 Right
+            end
+        end        
+        if (XPLMFindDataRef("sim/cockpit/engine/igniters_on", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.IGN2 ~= nil then
+                set_array("sim/cockpit/engine/igniters_on", 1, pxpSwitchData.PersistenceData.IGN2)
+            end
+        end        
+        if (XPLMFindDataRef("sim/cockpit/engine/ignition_on", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.MAG1 ~= nil then
+                set_array("sim/cockpit/engine/ignition_on", 0, pxpSwitchData.PersistenceData.MAG1) -- Ignition 0 Left 1 Right
+            end
+        end        
+        if (XPLMFindDataRef("sim/cockpit/engine/ignition_on", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.MAG2 ~= nil then
+                set_array("sim/cockpit/engine/ignition_on", 1, pxpSwitchData.PersistenceData.MAG2)
+            end
+        end
 
         -- Fuel
-        set_array("sim/cockpit/engine/fuel_pump_on", 0, pxpSwitchData.PersistenceData.BOOST_PMP1) -- Fuel Pumps, 0 Left, 1 Right
-        set_array("sim/cockpit/engine/fuel_pump_on", 1, pxpSwitchData.PersistenceData.BOOST_PMP2)
-        set_array("sim/cockpit2/fuel/fuel_quantity", 0, pxpSwitchData.PersistenceData.FUEL0)
-        set_array("sim/cockpit2/fuel/fuel_quantity", 1, pxpSwitchData.PersistenceData.FUEL1)
-        set_array("sim/cockpit2/fuel/fuel_quantity", 2, pxpSwitchData.PersistenceData.FUEL2)
-        set_array("sim/cockpit2/fuel/fuel_quantity", 3, pxpSwitchData.PersistenceData.FUEL3)
-        set("sim/cockpit2/fuel/fuel_totalizer_sum_kg", pxpSwitchData.PersistenceData.FUEL_TTL)
+        if (XPLMFindDataRef("sim/cockpit/engine/fuel_pump_on", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.BOOST_PMP1 ~= nil then
+                set_array("sim/cockpit/engine/fuel_pump_on", 0, pxpSwitchData.PersistenceData.BOOST_PMP1) -- Fuel Pumps, 0 Left, 1 Right
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/engine/fuel_pump_on", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.BOOST_PMP2 ~= nil then
+                set_array("sim/cockpit/engine/fuel_pump_on", 1, pxpSwitchData.PersistenceData.BOOST_PMP2)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/fuel/fuel_quantity", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.FUEL0 ~= nil then
+                set_array("sim/cockpit2/fuel/fuel_quantity", 0, pxpSwitchData.PersistenceData.FUEL0)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/fuel/fuel_quantity", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.FUEL1 ~= nil then
+                set_array("sim/cockpit2/fuel/fuel_quantity", 1, pxpSwitchData.PersistenceData.FUEL1)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/fuel/fuel_quantity", 2) ~= nil) then
+            if pxpSwitchData.PersistenceData.FUEL2 ~= nil then
+                set_array("sim/cockpit2/fuel/fuel_quantity", 2, pxpSwitchData.PersistenceData.FUEL2)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/fuel/fuel_quantity", 3) ~= nil) then
+            if pxpSwitchData.PersistenceData.FUEL3 ~= nil then
+                set_array("sim/cockpit2/fuel/fuel_quantity", 3, pxpSwitchData.PersistenceData.FUEL3)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/fuel/fuel_totalizer_sum_kg") ~= nil) then
+            if pxpSwitchData.PersistenceData.FUEL_TTL ~= nil then
+                set("sim/cockpit2/fuel/fuel_totalizer_sum_kg", pxpSwitchData.PersistenceData.FUEL_TTL)
+            end
+        end
 
         -- Ice Protection
-        set("sim/cockpit2/ice/ice_pitot_heat_on_pilot", pxpSwitchData.PersistenceData.PIT1_HT) -- Pitot Heat
-        set("sim/cockpit2/ice/ice_static_heat_on_pilot", pxpSwitchData.PersistenceData.STAT1_HT) -- Static Heat
-        set("sim/cockpit2/ice/ice_AOA_heat_on", pxpSwitchData.PersistenceData.AOA1_HT) -- AOA Heat
-        set("sim/cockpit2/ice/ice_pitot_heat_on_copilot", pxpSwitchData.PersistenceData.PIT2_HT) -- Pitot Heat
-        set("sim/cockpit2/ice/ice_static_heat_on_copilot", pxpSwitchData.PersistenceData.STAT2_HT) -- Static Heat
-        set("sim/cockpit2/ice/ice_AOA_heat_on_copilot", pxpSwitchData.PersistenceData.AOA2_HT) -- AOA Heat
-        set("sim/cockpit2/ice/ice_window_heat_on", pxpSwitchData.PersistenceData.WS_BLD) -- Window Bleed
-        set_array("sim/cockpit2/ice/ice_inlet_heat_on_per_engine", 0, pxpSwitchData.PersistenceData.INLET1_AI) -- 0 Left 1 Right
-        set_array("sim/cockpit2/ice/ice_inlet_heat_on_per_engine", 1, pxpSwitchData.PersistenceData.INLET2_AI)
-        set_array("sim/cockpit/switches/anti_ice_engine_air", 0, pxpSwitchData.PersistenceData.ENG_AI1) -- 0 Left 1 Right
-        set_array("sim/cockpit/switches/anti_ice_engine_air", 1, pxpSwitchData.PersistenceData.ENG_AI2)
-        set("sim/cockpit2/ice/ice_surface_boot_on", pxpSwitchData.PersistenceData.WING_BOOT) 
-        set("sim/cockpit2/ice/ice_surfce_heat_on", pxpSwitchData.PersistenceData.WING_HEAT)
-        set("sim/cockpit2/ice/ice_prop_heat_on", pxpSwitchData.PersistenceData.PROP_HEAT)
-
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_pitot_heat_on_pilot") ~= nil) then
+            if pxpSwitchData.PersistenceData.PIT1_HT ~= nil then
+                set("sim/cockpit2/ice/ice_pitot_heat_on_pilot", pxpSwitchData.PersistenceData.PIT1_HT) -- Pitot Heat
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_static_heat_on_pilot") ~= nil) then
+            if pxpSwitchData.PersistenceData.STAT1_HT ~= nil then
+                set("sim/cockpit2/ice/ice_static_heat_on_pilot", pxpSwitchData.PersistenceData.STAT1_HT) -- Static Heat
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_AOA_heat_on") ~= nil) then
+            if pxpSwitchData.PersistenceData.AOA1_HT ~= nil then
+                set("sim/cockpit2/ice/ice_AOA_heat_on", pxpSwitchData.PersistenceData.AOA1_HT) -- AOA Heat
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_pitot_heat_on_copilot") ~= nil) then
+            if pxpSwitchData.PersistenceData.PIT2_HT ~= nil then
+                set("sim/cockpit2/ice/ice_pitot_heat_on_copilot", pxpSwitchData.PersistenceData.PIT2_HT) -- Pitot Heat
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_static_heat_on_copilot") ~= nil) then
+            if pxpSwitchData.PersistenceData.STAT2_HT ~= nil then
+                set("sim/cockpit2/ice/ice_static_heat_on_copilot", pxpSwitchData.PersistenceData.STAT2_HT) -- Static Heat
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_AOA_heat_on_copilot") ~= nil) then
+            if pxpSwitchData.PersistenceData.AOA2_HT ~= nil then
+                set("sim/cockpit2/ice/ice_AOA_heat_on_copilot", pxpSwitchData.PersistenceData.AOA2_HT) -- AOA Heat
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_window_heat_on") ~= nil) then
+            if pxpSwitchData.PersistenceData.WS_BLD ~= nil then
+                set("sim/cockpit2/ice/ice_window_heat_on", pxpSwitchData.PersistenceData.WS_BLD) -- Window Bleed
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_inlet_heat_on_per_engine", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.INLET1_AI ~= nil then
+                set_array("sim/cockpit2/ice/ice_inlet_heat_on_per_engine", 0, pxpSwitchData.PersistenceData.INLET1_AI) -- 0 Left 1 Right
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_inlet_heat_on_per_engine", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.INLET2_AI ~= nil then
+                set_array("sim/cockpit2/ice/ice_inlet_heat_on_per_engine", 1, pxpSwitchData.PersistenceData.INLET2_AI)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/switches/anti_ice_engine_air", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.ENG_AI1 ~= nil then
+                set_array("sim/cockpit/switches/anti_ice_engine_air", 0, pxpSwitchData.PersistenceData.ENG_AI1) -- 0 Left 1 Right
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/switches/anti_ice_engine_air", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.ENG_AI2 ~= nil then
+                set_array("sim/cockpit/switches/anti_ice_engine_air", 1, pxpSwitchData.PersistenceData.ENG_AI2)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_surface_boot_on") ~= nil) then
+            if pxpSwitchData.PersistenceData.WING_BOOT ~= nil then
+                set("sim/cockpit2/ice/ice_surface_boot_on", pxpSwitchData.PersistenceData.WING_BOOT) 
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_surfce_heat_on") ~= nil) then
+            if pxpSwitchData.PersistenceData.WING_HEAT ~= nil then
+                set("sim/cockpit2/ice/ice_surfce_heat_on", pxpSwitchData.PersistenceData.WING_HEAT)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/ice/ice_prop_heat_on") ~= nil) then
+            if pxpSwitchData.PersistenceData.PROP_HEAT ~= nil then
+                set("sim/cockpit2/ice/ice_prop_heat_on", pxpSwitchData.PersistenceData.PROP_HEAT)
+            end
+        end
 
         -- Controls
-        set("sim/cockpit2/controls/elevator_trim", pxpSwitchData.PersistenceData.TRIM)
-        set("sim/cockpit2/controls/speedbrake_ratio", pxpSwitchData.PersistenceData.SPD_BRK)
-        set("sim/cockpit2/controls/flap_ratio", pxpSwitchData.PersistenceData.FLP_HNDL)
-        set("sim/cockpit2/switches/jet_sync_mode", pxpSwitchData.PersistenceData.FAN_SYNC)
-        set("sim/cockpit2/switches/prop_sync_on", pxpSwitchData.PersistenceData.PROP_SYNC)
-        set("sim/cockpit2/engine/actuators/throttle_ratio_all", pxpSwitchData.PersistenceData.THRTL)
-        set("sim/cockpit2/engine/actuators/prop_ratio_all", pxpSwitchData.PersistenceData.PROP)
-        set("sim/cockpit2/engine/actuators/mixture_ratio_all", pxpSwitchData.PersistenceData.MIX)
-        set_array("sim/cockpit2/engine/actuators/carb_heat_ratio", 0, pxpSwitchData.PersistenceData.CARB1)
-        set_array("sim/cockpit2/engine/actuators/carb_heat_ratio", 1, pxpSwitchData.PersistenceData.CARB2)
-        set_array("sim/cockpit2/engine/actuators/cowl_flap_ratio", 0, pxpSwitchData.PersistenceData.COWL1)
-        set_array("sim/cockpit2/engine/actuators/cowl_flap_ratio", 1, pxpSwitchData.PersistenceData.COWL2)
+        if (XPLMFindDataRef("sim/cockpit2/controls/elevator_trim") ~= nil) then
+            if pxpSwitchData.PersistenceData.TRIM ~= nil then
+                set("sim/cockpit2/controls/elevator_trim", pxpSwitchData.PersistenceData.TRIM)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/controls/speedbrake_ratio") ~= nil) then
+            if pxpSwitchData.PersistenceData.SPD_BRK ~= nil then
+                set("sim/cockpit2/controls/speedbrake_ratio", pxpSwitchData.PersistenceData.SPD_BRK)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/controls/flap_ratio") ~= nil) then
+            if pxpSwitchData.PersistenceData.FLP_HNDL ~= nil then
+                set("sim/cockpit2/controls/flap_ratio", pxpSwitchData.PersistenceData.FLP_HNDL)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/jet_sync_mode") ~= nil) then
+            if pxpSwitchData.PersistenceData.FAN_SYNC ~= nil then
+                set("sim/cockpit2/switches/jet_sync_mode", pxpSwitchData.PersistenceData.FAN_SYNC)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/prop_sync_on") ~= nil) then
+            if pxpSwitchData.PersistenceData.PROP_SYNC ~= nil then
+                set("sim/cockpit2/switches/prop_sync_on", pxpSwitchData.PersistenceData.PROP_SYNC)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/engine/actuators/throttle_ratio_all") ~= nil) then
+            if pxpSwitchData.PersistenceData.THRTL ~= nil then
+                set("sim/cockpit2/engine/actuators/throttle_ratio_all", pxpSwitchData.PersistenceData.THRTL)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/engine/actuators/prop_ratio_all") ~= nil) then
+            if pxpSwitchData.PersistenceData.PROP ~= nil then
+                set("sim/cockpit2/engine/actuators/prop_ratio_all", pxpSwitchData.PersistenceData.PROP)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/engine/actuators/mixture_ratio_all") ~= nil) then
+            if pxpSwitchData.PersistenceData.MIX ~= nil then
+                set("sim/cockpit2/engine/actuators/mixture_ratio_all", pxpSwitchData.PersistenceData.MIX)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/engine/actuators/carb_heat_ratio", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.CARB1 ~= nil then
+                set_array("sim/cockpit2/engine/actuators/carb_heat_ratio", 0, pxpSwitchData.PersistenceData.CARB1)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/engine/actuators/carb_heat_ratio", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.CARB2 ~= nil then
+                set_array("sim/cockpit2/engine/actuators/carb_heat_ratio", 1, pxpSwitchData.PersistenceData.CARB2)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/engine/actuators/cowl_flap_ratio", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.COWL1 ~= nil then
+                set_array("sim/cockpit2/engine/actuators/cowl_flap_ratio", 0, pxpSwitchData.PersistenceData.COWL1)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/engine/actuators/cowl_flap_ratio", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.COWL2 ~= nil then
+                set_array("sim/cockpit2/engine/actuators/cowl_flap_ratio", 1, pxpSwitchData.PersistenceData.COWL2)
+            end
+        end
 
         if loadedAircraft == 'S550_Citation_II.acf' then
             if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
@@ -1164,12 +1366,12 @@ function pxpParsePersistenceData()
                 end
             end
             if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestLR") ~= nil) then
-                if pxpSwitchData.PersistenceData.LYOKE ~= nil then
+                if pxpSwitchData.PersistenceData.LARM ~= nil then
                     set("thranda/cockpit/animations/ArmRestLR", pxpSwitchData.PersistenceData.LARM) -- Left Arm Rests
                 end
             end
             if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestRL") ~= nil) then
-                if pxpSwitchData.PersistenceData.LYOKE ~= nil then
+                if pxpSwitchData.PersistenceData.RARM ~= nil then
                     set("thranda/cockpit/animations/ArmRestRL", pxpSwitchData.PersistenceData.RARM) -- Right Arm Rest
                 end
             end
