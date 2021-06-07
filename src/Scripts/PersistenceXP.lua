@@ -4,6 +4,8 @@ Objective:
     - Record switch states on exit, reload on loade
     - Record position and reload
     - Isolate to specific airframe variations (rego?)
+
+    -- ** TO DO stop script reload affecting in flight aircraft.
     ]]
 
 
