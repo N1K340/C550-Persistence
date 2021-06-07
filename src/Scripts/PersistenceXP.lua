@@ -24,6 +24,7 @@ local pxpUseScript = false
 local pxpUseBaroSync = false
 local pxpDelayInt = 10
 local loadedAircraft = nil
+local label = 'disabled'
 -- globalLUA PLANE_TAILNUMBER
 
 -- Script Datarefs
@@ -58,7 +59,6 @@ function pxpParseSettings()
         pxpDelayInt = pxpSettings.settings.pxpDelayInt
         pxpUseBaroSync = pxpSettings.settings.pxpUseBaroSync
         print("PersistenceXP Settings Loaded")
-        print("PersistenceXP enabled for aircraft: " .. tostring(pxpUseScript))
     else
         print("PersistenceXP Settings file for aircraft not found")
     end    
@@ -78,8 +78,11 @@ function pxpStartDelay()
             print("PXP Waiting or Paused")
             return
         end
+        if pxpUseScript == true then
+            label = 'enabled'
+        end
         loadedAircraft = AIRCRAFT_FILENAME
-        print("PXP Ready for " .. AIRCRAFT_FILENAME)
+        print("PXP " ..  label .. " for " .. AIRCRAFT_FILENAME)
         pxpScriptReady = true 
     end  
 end
