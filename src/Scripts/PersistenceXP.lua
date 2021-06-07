@@ -143,7 +143,7 @@ function pxpAutoPersistenceData()
         pxpCompilePersistenceData()
         pxpScriptLoadTimer = 0
     end
-    if pxpScriptReady and not pxpScriptLoaded then
+    if pxpScriptReady and pxpUseScript and not pxpScriptLoaded then
         pxpParsePersistenceData() 
         pxpScriptLoaded = true
     end
@@ -1468,7 +1468,7 @@ function PXPSideSync()
                 set("sim/cockpit/misc/barometer_setting2", get("sim/cockpit/misc/barometer_setting"))
             end
         end
-        
+
     end
 end
 
