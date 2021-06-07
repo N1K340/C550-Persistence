@@ -1451,27 +1451,25 @@ function pxpParsePersistenceData()
     end
 end
 
- --[[   function PXPSideSync()
-        local Baro = nil
-        local SpdBug = nil
 
-        if get("sim/cockpit/autopilot/airspeed") ~= SpdBug then
-            SpdBug = get("sim/cockpit/autopilot/airspeed")
-            set("thranda/cockpit/actuators/ASI_adjustCo", SpdBug)
+-- Baro Sync Side Program
+
+function PXPSideSync()
+    if pxpUseBaroSync == true then
+
+        if (XPLMFindDataRef("sim/cockpit/autopilot/airspeed") ~= nil) then
+            if (XPLMFindDataRef("thranda/cockpit/actuators/ASI_adjustCo") ~= nil) then
+                set("thranda/cockpit/actuators/ASI_adjustCo", get("sim/cockpit/autopilot/airspeed"))
+            end
         end
-        if get("sim/cockpit/misc/barometer_setting") ~= Baro then
-            Baro = get("sim/cockpit/misc/barometer_setting")
-            set("sim/cockpit/misc/barometer_setting2", Baro)
+
+        if (XPLMFindDataRef("sim/cockpit/misc/barometer_setting") ~= nil) then
+            if (XPLMFindDataRef("sim/cockpit/misc/barometer_setting2") ~= nil) then
+                set("sim/cockpit/misc/barometer_setting2", get("sim/cockpit/misc/barometer_setting"))
+            end
         end
-    else
-    print("PersistenceXP panel state for aircraft not found")   
-end]]
+        
+    end
+end
 
-
-
-
--- do_sometimes("PXPSideSync()")
-
-
-
--- end -- master end
+do_sometimes("PXPSideSync()")
