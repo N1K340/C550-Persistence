@@ -600,6 +600,9 @@ function pxpCompilePersistenceData()
     local RVISARM = nil
     local RVIS = nil
 
+    -- Carenado C208 HD
+    local CARGOPOD = nil
+
     -- Carenado Citation II
     if loadedAircraft == 'S550_Citation_II.acf' then
         if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
@@ -645,6 +648,21 @@ function pxpCompilePersistenceData()
         print("PXP Skipping Carenado PC12 Ref's")
     end
 
+    -- Carenado C208 HD
+
+    if loadedAircraft == 'C208B_EX_XP11.acf' then
+        if (XPLMFindDataRef("Carenado/Switch/Dummy/Dummy1") ~= nil) then
+            LYOKE = get("Carenado/Switch/Dummy/Dummy1")
+        end
+        if (XPLMFindDataRef("Carenado/Switch/Dummy/Dummy2") ~= nil) then
+            RYOKE = get("Carenado/Switch/Dummy/Dummy2")
+        end
+        if (XPLMFindDataRef("Carenado/visibilities/CargoPod") ~= nil) then
+            CARGOPOD = get("Carenado/visibilities/CargoPod")
+        end
+    else
+        print("PXP Skipping Carenado C208 HD Ref's")
+    end
 
     --[[ Carenado PC12 REP
 
@@ -854,6 +872,9 @@ function pxpCompilePersistenceData()
             LVISARM = LVISARM,
             RVIS = RVIS,
             RVISARM = RVISARM,
+
+            -- Carenado C208
+            CARGOPOD = CARGOPOD,
 
             --[[
                 
@@ -1505,6 +1526,30 @@ function pxpParsePersistenceData()
         else
             print("PXP Skipping Carenado PC12 Ref's")
         end
+
+        -- Carenado C208 HD
+
+        if loadedAircraft == 'C208B_EX_XP11.acf' then
+            if (XPLMFindDataRef("arenado/Switch/Dummy/Dummy1") ~= nil) then
+                if pxpSwitchData.PersistenceData.LYOKE ~= nil then
+                    set("arenado/Switch/Dummy/Dummy1", pxpSwitchData.PersistenceData.LYOKE)
+                end
+            end
+            if (XPLMFindDataRef("Carenado/Switch/Dummy/Dummy2") ~= nil) then
+                if pxpSwitchData.PersistenceData.RYOKE ~= nil then
+                    set("Carenado/Switch/Dummy/Dummy2", pxpSwitchData.PersistenceData.RYOKE)
+                end
+            end
+            if (XPLMFindDataRef("Carenado/visibilities/CargoPod") ~= nil) then
+                if pxpSwitchData.PersistenceData.CARGOPOD ~= nil then
+                    set("Carenado/visibilities/CargoPod", pxpSwitchData.PersistenceData.CARGOPOD)
+                end
+            end
+        else
+            print("PXP Skipping Carenado C208 HD Ref's")
+        end
+
+
 --[[
         set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV) -- Inverter Switch
 
