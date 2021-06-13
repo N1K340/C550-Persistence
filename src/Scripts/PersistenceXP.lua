@@ -1675,8 +1675,8 @@ function pxpParsePersistenceData()
             end
         end
         if (XPLMFindDataRef("thranda/cockpit/ManualOverride") ~= nil) then
-            if pxpSwitchData.PersistenceData.DCAMP ~= nil then
-                set_array("thranda/cockpit/ManualOverride", pxpSwitchData.PersistenceData.DCAMP)
+            if pxpSwitchData.PersistenceData.CAB_PRESS_CTL ~= nil then
+                set_array("thranda/cockpit/ManualOverride", pxpSwitchData.PersistenceData.CAB_PRESS_CTL)
             end
         end
         else
