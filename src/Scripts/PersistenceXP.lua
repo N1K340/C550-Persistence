@@ -171,6 +171,21 @@ function pxpSettings_content(pxpSettings_wnd, x, y)
             pxpCompileSettings()
             print("PersistenceXP: Baro Sync changed to " .. tostring(pxpUseScript))
         end
+        imgui.SetCursorPos(50, imgui.GetCursorPosY())
+        if imgui.Button("SAVE PANEL STATE") then
+            pxpCompilePersistenceData()
+        end
+        imgui.SameLine()
+        imgui.SetCursorPos(250, imgui.GetCursorPosY())
+        if imgui.Button("LOAD PANEL STATE") then
+            pxpParsePersistenceData()
+        end
+        imgui.Separator()
+        imgui.TextUnformatted("")
+        imgui.SetCursorPos(200, imgui.GetCursorPosY())
+        if imgui.Button("CLOSE") then
+            pxpCloseSettings_wnd()
+        end
 end
 
 add_macro("PersistenceXP View Settings", "pxpOpenSettings_wnd()", "pxpCloseSettings_wnd()", "deactivate")
@@ -714,6 +729,8 @@ function pxpCompilePersistenceData()
     local AC = nil
     local BLWR = nil
     local CAB_VNT = nil
+    local NAV_IDENT = nil
+    local MIC_SEL = nil
     
     -- Carenado Citation II
     if loadedAircraft == 'S550_Citation_II.acf' then
@@ -821,6 +838,12 @@ function pxpCompilePersistenceData()
         end
         if (XPLMFindDataRef("thranda/pneumatic/CabinVent") ~= nil) then
             CAB_VNT = get("thranda/pneumatic/CabinVent") 
+        end
+        if (XPLMFindDataRef("thranda/BT", 2) ~= nil) then
+            NAV_IDENT = get("thranda/BT", 2) 
+        end
+        if (XPLMFindDataRef("thranda/BT", 32) ~= nil) then
+            MIC_SEL = get("thranda/BT", 32) 
         end
     else
         print("PXP Skipping Carenado Citation II Ref's")
@@ -1083,6 +1106,8 @@ function pxpCompilePersistenceData()
             AC = AC,
             BLWR = BLWR,
             CAB_VNT = CAB_VNT,
+            NAV_IDENT = NAV_IDENT,
+            MIC_SEL = MIC_SEL,
             
 
             -- Carenado PC12
@@ -1275,9 +1300,9 @@ function pxpParsePersistenceData()
                 set("sim/cockpit2/radios/actuators/audio_selection_adf1", pxpSwitchData.PersistenceData.ADF1_RCV) -- ADF 1 Receives
             end
         end
-        if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_adf1") ~= nil) then
+        if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_adf2") ~= nil) then
             if pxpSwitchData.PersistenceData.ADF2_RCV ~= nil then
-                set("sim/cockpit2/radios/actuators/audio_selection_adf1", pxpSwitchData.PersistenceData.ADF2_RCV) -- ADF 2 Receives
+                set("sim/cockpit2/radios/actuators/audio_selection_adf2", pxpSwitchData.PersistenceData.ADF2_RCV) -- ADF 2 Receives
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/radios/actuators/audio_selection_nav1") ~= nil) then
@@ -1786,6 +1811,11 @@ function pxpParsePersistenceData()
                     set_array( "thranda/BT", 22, pxpSwitchData.PersistenceData.TEMP_MAN)
                 end
             end
+            if (XPLMFindDataRef( "thranda/BT", 2) ~= nil) then
+                if pxpSwitchData.PersistenceData.NAV_IDENT ~= nil then
+                    set_array( "thranda/BT", 2, pxpSwitchData.PersistenceData.NAV_IDENT)
+                end
+            end
             if (XPLMFindDataRef("thranda/pneumatic/CabinTempAct") ~= nil) then
                 if pxpSwitchData.PersistenceData.TEMP_CTRL ~= nil then
                     set("thranda/pneumatic/CabinTempAct", pxpSwitchData.PersistenceData.TEMP_CTRL)
@@ -1839,6 +1869,11 @@ function pxpParsePersistenceData()
             if (XPLMFindDataRef("thranda/pneumatic/CabinVent") ~= nil) then
                 if pxpSwitchData.PersistenceData.CAB_VNT ~= nil then
                     set("thranda/pneumatic/CabinVent", pxpSwitchData.PersistenceData.CAB_VNT)
+                end
+            end
+            if (XPLMFindDataRef( "thranda/BT", 32) ~= nil) then
+                if pxpSwitchData.PersistenceData.MIC_SEL ~= nil then
+                    set_array( "thranda/BT", 32, pxpSwitchData.PersistenceData.MIC_SEL)
                 end
             end
             if ENG1_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
