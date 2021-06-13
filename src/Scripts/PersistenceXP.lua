@@ -4,8 +4,6 @@ Objective:
     - Record switch states on exit, reload on loade
     - Record position and reload
     - Isolate to specific airframe variations (rego?)
-
-    -- ** TO DO stop script reload affecting in flight aircraft.
     ]]
 
 
@@ -379,7 +377,7 @@ function pxpCompilePersistenceData()
 
 
 
-    -- Bugs
+    -- Nav Related
     local HDG = nil
     local VS = nil
     local APA = nil
@@ -391,6 +389,15 @@ function pxpCompilePersistenceData()
     local DH = nil
     local CRS1 = nil
     local CRS2 = nil
+    local GYROSL = nil
+    local GYROSR = nil
+
+    if (XPLMFindDataRef("sim/cockpit/gyros/gyr_free_slaved", 0) ~= nil) then
+        GYRSL = get("sim/cockpit/gyros/gyr_free_slaved", 0)
+    end
+    if (XPLMFindDataRef("sim/cockpit/gyros/gyr_free_slaved", 1) ~= nil) then
+        GYROSR = get("sim/cockpit/gyros/gyr_free_slaved", 1)
+    end
 
     if (XPLMFindDataRef("sim/cockpit/autopilot/heading_mag") ~= nil) then
         HDG = get("sim/cockpit/autopilot/heading_mag")
@@ -595,12 +602,29 @@ function pxpCompilePersistenceData()
         CAB_RATE = get("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm")
     end
 
+    -- Internal Lighting
+    local ST_BLT = nil
+    local NO_SMK = nil
+
+    if (XPLMFindDataRef("sim/cockpit/switches/fasten_seat_belts") ~= nil) then
+        ST_BLT = get("sim/cockpit/switches/fasten_seat_belts")
+    end
+    if (XPLMFindDataRef("sim/cockpit/switches/no_smoking") ~= nil) then
+        NO_SMK = get("sim/cockpit/switches/no_smoking")
+    end
+
+
     -- Custom Aircraft
     -- Carenado Citation II / Carenado PC12
     local LYOKE = nil
     local RYOKE = nil
     local LARM = nil
     local RARM = nil
+    local PNL_LT = nil
+    local PNL_LFT = nil
+    local PNL_CTR = nil
+    local PNL_RT = nil
+    local PNL_EL = nil
 
     -- Carenado PC12
     local LVISARM = nil
@@ -633,6 +657,27 @@ function pxpCompilePersistenceData()
         if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestRL") ~= nil) then
             RARM = get("thranda/cockpit/animations/ArmRestRL")
         end
+        if (XPLMFindDataRef("sim/cockpit2/switches/generic_lights_switch", 30) ~= nil) then
+            PNL_LT = get("sim/cockpit2/switches/generic_lights_switch", 30)
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 1) ~= nil) then
+            FLOOD_LT = get("sim/cockpit2/switches/instrument_brightness_ratio", 1)
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 2) ~= nil) then
+            PNL_LFT = get("sim/cockpit2/switches/instrument_brightness_ratio", 2)
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 3) ~= nil) then
+            PNL_CTR = get("sim/cockpit2/switches/instrument_brightness_ratio", 3)
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 4) ~= nil) then
+            PNL_RT = get("sim/cockpit2/switches/instrument_brightness_ratio", 4)
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 5) ~= nil) then
+            PNL_EL = get("sim/cockpit2/switches/instrument_brightness_ratio", 5)
+        end
+
+
+
     else
         print("PXP Skipping Carenado Citation II Ref's")
     end
@@ -738,21 +783,13 @@ function pxpCompilePersistenceData()
 
 
     
-    local GYROSL = get("sim/cockpit/gyros/gyr_free_slaved", 0) -- 0 LH Main, 1 LH Source
-    local GYROSR = get("sim/cockpit/gyros/gyr_free_slaved", 1)
+    
     
 
  
     -- local INSTR_LTS = get("sim/cockpit2/switches/instrument_brightness_ratio")
-    local FLOOD_LT = get("sim/cockpit2/switches/instrument_brightness_ratio", 1)
-    local PNL_LT = get("sim/cockpit2/switches/generic_lights_switch", 30)
-    local PNL_LFT = get("sim/cockpit2/switches/instrument_brightness_ratio", 2)
-    local PNL_CTR = get("sim/cockpit2/switches/instrument_brightness_ratio", 3)
-    local PNL_RT = get("sim/cockpit2/switches/instrument_brightness_ratio", 4)
-    local PNL_EL = get("sim/cockpit2/switches/instrument_brightness_ratio", 5)
-    local ST_BLT = get("sim/cockpit/switches/fasten_seat_belts")
-    local PRESS_VVI = get("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm")
-    local CAB_ALT = get("sim/cockpit/pressure/cabin_altitude_set_m_msl")
+    
+
     
 
  
@@ -765,9 +802,7 @@ function pxpCompilePersistenceData()
 
 
     local INV = get("thranda/electrical/AC_InverterSwitch") -- Inverter Switch
-
     local RYOKE = get("thranda/cockpit/actuators/HideYokeR") -- Right Yoke
-
     local WREFL = get("thranda/views/WindowRefl") -- Window Reflections
     local IREFL = get("thranda/views/InstRefl") -- Instrument Reflections
     local COVERS = get("thranda/views/staticelements") -- Pitot Covers
@@ -854,7 +889,7 @@ function pxpCompilePersistenceData()
 
             CLK_MODE = CLK_MODE,
 
-            --Bugs
+            -- Nav Related
             HDG = HDG,
             VS = VS,
             APA = APA,
@@ -866,6 +901,8 @@ function pxpCompilePersistenceData()
             DH = DH,
             CRS1 = CRS1,
             CRS2 = CRS2,
+            GYROSL = GYROSL,
+            GYROSR = GYROSR,
 
             -- Engines
             IGN1 = IGN1,
@@ -914,11 +951,21 @@ function pxpCompilePersistenceData()
             CAB_ALT = CAB_ALT,
             CAB_RATE = CAB_RATE,
 
+            -- Internal Lights
+            ST_BLT = ST_BLT,
+            NO_SMK = NO_SMK,
+
             -- Carenado C550
             LYOKE = LYOKE,
             RYOKE = RYOKE,
             LARM = LARM,
             RARM = RARM,
+            FLOOD_LT = FLOOD_LT,
+            PNL_LT = PNL_LT,
+            PNL_LFT = PNL_LFT,
+            PNL_CTR = PNL_CTR,
+            PNL_RT = PNL_RT,
+            PNL_EL = PNL_EL,
 
             -- Carenado PC12
             LVIS = LVIS,
@@ -956,20 +1003,14 @@ function pxpCompilePersistenceData()
             
             
             
-            GYROSL = GYROSL,
-            GYROSR = GYROSR,
+            
             FUEL_SEL = FUEL_SEL,
             RECOG = RECOG,
             
             BARO_UNIT = BARO_UNIT,
             N1_Dial = N1_Dial,
-            FLOOD_LT = FLOOD_LT,
-            PNL_LT = PNL_LT,
-            PNL_LFT = PNL_LFT,
-            PNL_CTR = PNL_CTR,
-            PNL_RT = PNL_RT,
-            PNL_EL = PNL_EL,
-            ST_BLT = ST_BLT,
+            
+            
             L_LND = L_LND,
             R_LND = R_LND,
             ASKID = ASKID,
@@ -1267,7 +1308,18 @@ function pxpParsePersistenceData()
             end
         end
 
-        --Bugs
+        -- Nav Related
+        if (XPLMFindDataRef("sim/cockpit/gyros/gyr_free_slaved", 0) ~= nil) then
+            if pxpSwitchData.PersistenceData.GYROSL ~= nil then
+                set_array("sim/cockpit/gyros/gyr_free_slaved", 0, pxpSwitchData.PersistenceData.GYROSL)
+            end
+        end        
+        if (XPLMFindDataRef("sim/cockpit/gyros/gyr_free_slaved", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.GYROSR ~= nil then
+                set_array("sim/cockpit/gyros/gyr_free_slaved", 1, pxpSwitchData.PersistenceData.GYROSR)
+            end
+        end      
+
         if (XPLMFindDataRef("sim/cockpit/autopilot/heading_mag") ~= nil) then
             if pxpSwitchData.PersistenceData.HDG ~= nil then
                 set("sim/cockpit/autopilot/heading_mag", pxpSwitchData.PersistenceData.HDG)
@@ -1528,6 +1580,19 @@ function pxpParsePersistenceData()
             end
         end
 
+        -- Internal Lights
+
+        if (XPLMFindDataRef("sim/cockpit/switches/fasten_seat_belts") ~= nil) then
+            if pxpSwitchData.PersistenceData.ST_BLT ~= nil then
+                set("sim/cockpit/switches/fasten_seat_belts", pxpSwitchData.PersistenceData.ST_BLT)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit/switches/no_smoking") ~= nil) then
+            if pxpSwitchData.PersistenceData.NO_SMK ~= nil then
+                set("sim/cockpit/switches/no_smoking", pxpSwitchData.PersistenceData.NO_SMK)
+            end
+        end
+
         -- Carenado Citaion II
 
         if loadedAircraft == 'S550_Citation_II.acf' then
@@ -1551,6 +1616,39 @@ function pxpParsePersistenceData()
                     set("thranda/cockpit/animations/ArmRestRL", pxpSwitchData.PersistenceData.RARM) -- Right Arm Rest
                 end
             end
+            if (XPLMFindDataRef("sim/cockpit2/switches/generic_lights_switch", 30) ~= nil) then
+                if pxpSwitchData.PersistenceData.PNL_LT ~= nil then
+                    set_array("sim/cockpit2/switches/generic_lights_switch", 30, pxpSwitchData.PersistenceData.PNL_LT)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 1) ~= nil) then
+                if pxpSwitchData.PersistenceData.FLOOD_LT ~= nil then
+                    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 1, pxpSwitchData.PersistenceData.FLOOD_LT)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 2) ~= nil) then
+                if pxpSwitchData.PersistenceData.PNL_LFT ~= nil then
+                    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 2, pxpSwitchData.PersistenceData.PNL_LFT)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 3) ~= nil) then
+                if pxpSwitchData.PersistenceData.PNL_CTR ~= nil then
+                    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 3, pxpSwitchData.PersistenceData.PNL_CTR)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 4) ~= nil) then
+                if pxpSwitchData.PersistenceData.PNL_RT ~= nil then
+                    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 4, pxpSwitchData.PersistenceData.PNL_RT)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 5) ~= nil) then
+                if pxpSwitchData.PersistenceData.PNL_EL ~= nil then
+                    set_array("sim/cockpit2/switches/instrument_brightness_ratio", 5, pxpSwitchData.PersistenceData.PNL_EL)
+                end
+            end
+
+
+
         else
             print("PXP Skipping Carenado Citation II Ref's")
         end
@@ -1718,8 +1816,7 @@ function pxpParsePersistenceData()
 
 
        
-        set_array("sim/cockpit/gyros/gyr_free_slaved", 0, pxpSwitchData.PersistenceData.GYROSL) -- 0 LH Main, 1 LH Source
-        set_array("sim/cockpit/gyros/gyr_free_slaved", 1, pxpSwitchData.PersistenceData.GYROSR)
+
 
         
         set("thranda/fuel/CrossFeedLRSw", pxpSwitchData.PersistenceData.FUEL_SEL)
