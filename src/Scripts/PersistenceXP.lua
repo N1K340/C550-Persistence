@@ -1,8 +1,7 @@
 --[[ Starting a new file, what an idiot
 Persistence for X-Plane 11 Aircraft, with compatability with custom datarefs as coded
 Objective:
-    - Record switch states on exit, reload on loade
-    - Record position and reload
+    - Save and Load Panel State 
     - Isolate to specific airframe variations (rego?)
 
 Aircraft With Custom Datarefs
@@ -953,6 +952,12 @@ function pxpCompilePersistenceData()
         end
         if (XPLMFindDataRef("com/dkmp/AnnunLITsw") ~= nil) then
             PNL_RT = get("com/dkmp/AnnunLITsw")
+        end
+        if (XPLMFindDataRef("com/dkmp/Throttle") ~= nil) then
+            THRTL = get("com/dkmp/Throttle")
+        end
+        if (XPLMFindDataRef("sim/flightmodel/engine/ENGN_prop", 0) ~= nil) then
+            PROP = get("sim/flightmodel/engine/ENGN_prop", 0)
         end
         
     else
@@ -2128,6 +2133,16 @@ function pxpParsePersistenceData()
             if (XPLMFindDataRef("com/dkmp/AnnunLITsw") ~= nil) then
                 if pxpSwitchData.PersistenceData.ANNUN_DIM ~= nil then
                     set("com/dkmp/AnnunLITsw", pxpSwitchData.PersistenceData.ANNUN_DIM)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/Throttle") ~= nil) then
+                if pxpSwitchData.PersistenceData.THRTL ~= nil then
+                    set("com/dkmp/Throttle", pxpSwitchData.PersistenceData.THRTL)
+                end
+            end
+            if (XPLMFindDataRef("sim/flightmodel/engine/ENGN_prop") ~= nil) then
+                if pxpSwitchData.PersistenceData.PROP ~= nil then
+                    set_array("sim/flightmodel/engine/ENGN_prop", 0, pxpSwitchData.PersistenceData.PROP)
                 end
             end
             
