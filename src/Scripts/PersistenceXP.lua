@@ -2025,9 +2025,9 @@ function pxpParsePersistenceData()
         -- Carenado C208 HD
 
         if loadedAircraft == 'C208B_EX_XP11.acf' or 'Car_C208B.acf' then
-            if (XPLMFindDataRef("arenado/Switch/Dummy/Dummy1") ~= nil) then
+            if (XPLMFindDataRef("Carenado/Switch/Dummy/Dummy1") ~= nil) then
                 if pxpSwitchData.PersistenceData.LYOKE ~= nil then
-                    set("arenado/Switch/Dummy/Dummy1", pxpSwitchData.PersistenceData.LYOKE)
+                    set("Carenado/Switch/Dummy/Dummy1", pxpSwitchData.PersistenceData.LYOKE)
                 end
             end
             if (XPLMFindDataRef("Carenado/Switch/Dummy/Dummy2") ~= nil) then
@@ -2107,7 +2107,7 @@ function pxpParsePersistenceData()
             end
             if (XPLMFindDataRef("com/dkmp/PanelLit") ~= nil) then
                 if pxpSwitchData.PersistenceData.PNL_LT ~= nil then
-                    set("com/dkmp/PanelLit", pxpSwitchData.PersistenceData.PNL)
+                    set("com/dkmp/PanelLit", pxpSwitchData.PersistenceData.PNL_LT)
                 end
             end
             if (XPLMFindDataRef("sim/cockpit2/switches/panel_brightness_ratio", 2) ~= nil) then
@@ -2133,7 +2133,7 @@ function pxpParsePersistenceData()
             
         else
             print("PXP Skipping Carenado C208 Ref's")
-        end
+        end 
 
         -- Carenado SF34
 
