@@ -619,7 +619,7 @@ function pxpCompilePersistenceData()
     local EMG = nil
     local CAB_PRESS_CTL = nil
 
-    -- Carenado Citation II
+    --[[ Carenado Citation II
     if loadedAircraft == 'S550_Citation_II.acf' then
         if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
             LYOKE = get("thranda/cockpit/actuators/HideYokeL")
@@ -721,7 +721,7 @@ function pxpCompilePersistenceData()
         end
     else
         print("PXP Skipping Carenado Saab 340 Ref's")
-    end
+    end ]]
 
     
     --[[ Deafulat Datarefs
@@ -1511,12 +1511,12 @@ function pxpParsePersistenceData()
 
         if (XPLMFindDataRef("sim/cockpit2/pressurization/actuators/cabin_altitude_ft") ~= nil) then
             if pxpSwitchData.PersistenceData.CAB_ALT ~= nil then
-                set_array("sim/cockpit2/pressurization/actuators/cabin_altitude_ft", pxpSwitchData.PersistenceData.CAB_ALT)
+                set("sim/cockpit2/pressurization/actuators/cabin_altitude_ft", pxpSwitchData.PersistenceData.CAB_ALT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm") ~= nil) then
             if pxpSwitchData.PersistenceData.CAB_RATE ~= nil then
-                set_array("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm", pxpSwitchData.PersistenceData.CAB_RATE)
+                set("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm", pxpSwitchData.PersistenceData.CAB_RATE)
             end
         end
 
@@ -1661,7 +1661,7 @@ function pxpParsePersistenceData()
         end
         if (XPLMFindDataRef("thranda/actuators/VoltSelAct") ~= nil) then
             if pxpSwitchData.PersistenceData.DCAMP ~= nil then
-                set_array("thranda/actuators/VoltSelAct", pxpSwitchData.PersistenceData.DCAMP)
+                set("thranda/actuators/VoltSelAct", pxpSwitchData.PersistenceData.DCAMP)
             end
         end
         if (XPLMFindDataRef("thranda/BT", 27) ~= nil) then
@@ -1676,12 +1676,12 @@ function pxpParsePersistenceData()
         end
         if (XPLMFindDataRef("thranda/cockpit/ManualOverride") ~= nil) then
             if pxpSwitchData.PersistenceData.CAB_PRESS_CTL ~= nil then
-                set_array("thranda/cockpit/ManualOverride", pxpSwitchData.PersistenceData.CAB_PRESS_CTL)
+                set("thranda/cockpit/ManualOverride", pxpSwitchData.PersistenceData.CAB_PRESS_CTL)
             end
         end
         else
             print("PXP Skipping Carenado Saab 340 Ref's")
-        end
+        end 
 
 --[[
         set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV) -- Inverter Switch
