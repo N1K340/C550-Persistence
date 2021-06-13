@@ -7,6 +7,8 @@ Objective:
 
 Aircraft With Custom Datarefs
     - Carenado Citation II
+    - Carenado C208 HD
+
 
     ]]
 
@@ -2125,7 +2127,7 @@ function pxpParsePersistenceData()
             end
             if (XPLMFindDataRef("com/dkmp/AnnunLITsw") ~= nil) then
                 if pxpSwitchData.PersistenceData.ANNUN_DIM ~= nil then
-                    set_array("com/dkmp/AnnunLITsw", pxpSwitchData.PersistenceData.ANNUN_DIM)
+                    set("com/dkmp/AnnunLITsw", pxpSwitchData.PersistenceData.ANNUN_DIM)
                 end
             end
             
