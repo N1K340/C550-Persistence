@@ -650,7 +650,7 @@ function pxpCompilePersistenceData()
 
     -- Carenado C208 HD
 
-    if loadedAircraft == 'C208B_EX_XP11.acf' then
+    if loadedAircraft == 'C208B_EX_XP11.acf' or 'Car_C208B.acf' then
         if (XPLMFindDataRef("Carenado/Switch/Dummy/Dummy1") ~= nil) then
             LYOKE = get("Carenado/Switch/Dummy/Dummy1")
         end
@@ -1529,7 +1529,7 @@ function pxpParsePersistenceData()
 
         -- Carenado C208 HD
 
-        if loadedAircraft == 'C208B_EX_XP11.acf' then
+        if loadedAircraft == 'C208B_EX_XP11.acf' or 'Car_C208B.acf' then
             if (XPLMFindDataRef("arenado/Switch/Dummy/Dummy1") ~= nil) then
                 if pxpSwitchData.PersistenceData.LYOKE ~= nil then
                     set("arenado/Switch/Dummy/Dummy1", pxpSwitchData.PersistenceData.LYOKE)
