@@ -27,7 +27,7 @@ local pxpUseBaroSync = false
 local pxpDelayInt = 10
 local loadedAircraft = nil
 local label = 'disabled'
--- globalLUA PLANE_TAILNUMBER
+
 
 -- Script Datarefs
 dataref("SIM_TIME", "sim/time/total_running_time_sec")
@@ -619,7 +619,7 @@ function pxpCompilePersistenceData()
     local EMG = nil
     local CAB_PRESS_CTL = nil
 
-    --[[ Carenado Citation II
+    -- Carenado Citation II
     if loadedAircraft == 'S550_Citation_II.acf' then
         if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
             LYOKE = get("thranda/cockpit/actuators/HideYokeL")
@@ -721,7 +721,7 @@ function pxpCompilePersistenceData()
         end
     else
         print("PXP Skipping Carenado Saab 340 Ref's")
-    end ]]
+    end
 
     
     --[[ Deafulat Datarefs
