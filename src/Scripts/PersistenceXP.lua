@@ -17,6 +17,7 @@ local pxpSwitchData = {}
 local pxpSettings = {}
 local pxpScriptLoaded = false
 local pxpSettingsLoaded = false
+local pxpAutoState = false
 local pxpScriptLoadTimer = 3
 local pxpScriptStartedTime = 0
 local pxpScriptReady = false
@@ -45,6 +46,7 @@ function pxpCompileSettings()
             pxpUseScript = pxpUseScript,
             pxpDelayInt = pxpDelayInt,
             pxpUseBaroSync = pxpUseBaroSync,
+            pxpAutoState = pxpAutoState,
         }
     }
     pxpWriteSettings(pxpSettings)    
@@ -58,11 +60,38 @@ function pxpParseSettings()
         pxpUseScript = pxpSettings.settings.pxpUseScript
         pxpDelayInt = pxpSettings.settings.pxpDelayInt
         pxpUseBaroSync = pxpSettings.settings.pxpUseBaroSync
+        pxpAutoState = pxpSettings.settings.pxpAutoState
         print("PersistenceXP Settings Loaded")
     else
         print("PersistenceXP Settings file for aircraft not found")
     end    
 end
+
+-- Bubble for messages
+
+    local bubbleTimer = 3
+    local msgStr = nil
+
+    function pxpDisplayMessage()
+        bubble(20, get("sim/graphics/view/window_height") - 130, msgStr)
+    end
+
+    function pxpmsg()
+        if bubbleTimer < 3 then
+            pxpDisplayMessage()
+        else
+            msgStr = nil
+        end 
+    end
+
+    function pxpBubbleTiming()
+        if bubbleTimer < 3 then
+            bubbleTimer = bubbleTimer + 1
+        end        
+    end
+
+    do_every_draw("pxpmsg()")
+    do_often("pxpBubbleTiming()")
 
 -- Initialise Script
 
@@ -76,6 +105,8 @@ function pxpStartDelay()
         end
         if (SIM_TIME < pxpScriptStartedTime) then
             print("PXP Waiting or Paused")
+            msgStr = "Persistence XP Loading or Sim Paused"
+            bubbleTimer = 0
             return
         end
         if pxpUseScript == true then
@@ -83,6 +114,8 @@ function pxpStartDelay()
         end
         loadedAircraft = AIRCRAFT_FILENAME
         print("PXP " ..  label .. " for " .. AIRCRAFT_FILENAME)
+        msgStr = ("Persistence XP Loaded: "..  label .. " for " .. AIRCRAFT_FILENAME)
+        bubbleTimer = 0
         pxpScriptReady = true 
     end  
 end
@@ -125,6 +158,13 @@ function pxpSettings_content(pxpSettings_wnd, x, y)
             print("PersistenceXP: Plugin enabled changed to " .. tostring(pxpUseScript))
         end
         imgui.SetCursorPos(20, imgui.GetCursorPosY())
+        local changed, newVal = imgui.Checkbox("Automatically Load and Save Panel States?", pxpAutoState)
+        if changed then
+            pxpAutoState = newVal
+            pxpCompileSettings()
+            print("PersistenceXP: Auto Panel changed to " .. tostring(pxpUseScript))
+        end
+        imgui.SetCursorPos(20, imgui.GetCursorPosY())
         local changed, newVal = imgui.Checkbox("Use Left and Right Baro Sync with this aircraft?", pxpUseBaroSync)
         if changed then
             pxpUseBaroSync = newVal
@@ -139,21 +179,26 @@ add_macro("PersistenceXP View Settings", "pxpOpenSettings_wnd()", "pxpCloseSetti
 -- Main Function Call
 
 function pxpAutoPersistenceData()
-    if pxpScriptLoadTimer < 3 then
-       pxpScriptLoadTimer = pxpScriptLoadTimer + 1
-    end
-    if pxpScriptLoaded and pxpScriptLoadTimer == 3 and PRK_BRK == 1 and ENG1_RUN == 0 then
-        pxpCompilePersistenceData()
-        pxpScriptLoadTimer = 0
-    end
-    if pxpScriptReady and pxpUseScript and not pxpScriptLoaded then
-        if PRK_BRK == 1 and ENG1_RUN == 0 then        
-            pxpParsePersistenceData()
-        else
-            print("PersistenceXP Skipping State Load, Park Brake not set or Engine is running.")     
+        if pxpScriptLoadTimer < 3 then
+        pxpScriptLoadTimer = pxpScriptLoadTimer + 1
         end
-        pxpScriptLoaded = true
-    end
+        if pxpAutoState and pxpScriptLoaded and pxpScriptLoadTimer == 3 and PRK_BRK == 1 and ENG1_RUN == 0 then
+            pxpCompilePersistenceData()
+            pxpScriptLoadTimer = 0
+        end
+        if pxpAutoState and pxpScriptReady and pxpUseScript and not pxpScriptLoaded then
+            if PRK_BRK == 1 and ENG1_RUN == 0 then        
+                pxpParsePersistenceData()
+                print("Persistence XP Panel State Loaded")
+                msgStr = "Persistence XP Panel State Loaded"
+                bubbleTimer = -2
+            else
+                print("PersistenceXP Skipping State Load, Park Brake not set or Engine is running.")
+                msgStr = "PersistenceXP Skipping State Load, Park Brake not set or Engine is running"
+                bubbleTimer = -2     
+            end
+            pxpScriptLoaded = true
+        end
 end
 
 do_sometimes("pxpAutoPersistenceData()")
@@ -166,6 +211,8 @@ add_macro("PersistenceXP Load Panel State", "pxpParsePersistenceData()")
 function pxpWritePersistenceData(pxpSwitchData)
     LIP.save(AIRCRAFT_PATH .. "/pxpPersistence.ini", pxpSwitchData)
     print("PersistenceXP Panel State Saved")
+    msgStr = "PersistenceXP Panel State Saved"
+    bubbleTimer = 1
 end
 
 function pxpCompilePersistenceData()
@@ -642,7 +689,32 @@ function pxpCompilePersistenceData()
     local EMG_CVR = nil
     local EMG = nil
     local CAB_PRESS_CTL = nil
-
+    local INV = nil
+    local WREFL = nil
+    local IREFL = nil
+    local COVERS = nil
+    local VOLT_SEL = nil
+    local TEST_SEL = nil
+    local FUEL_SEL = nil
+    local RECOG = nil
+    local BARO_UNIT = nil
+    local N1_DIAL = nil
+    local L_LND = nil
+    local R_LND = nil
+    local ASKID = nil
+    local TEMP_MAN = nil
+    local TEMP_CTRL = nil
+    local PRES_SRC = nil
+    local FLOW_DIST = nil
+    local L_WS = nil
+    local R_WS = nil
+    local CAB_FAN1 = nil
+    local CAB_FAN2 = nil
+    local CAB_FOG = nil
+    local AC = nil
+    local BLWR = nil
+    local CAB_VNT = nil
+    
     -- Carenado Citation II
     if loadedAircraft == 'S550_Citation_II.acf' then
         if (XPLMFindDataRef("thranda/cockpit/actuators/HideYokeL") ~= nil) then
@@ -675,9 +747,81 @@ function pxpCompilePersistenceData()
         if (XPLMFindDataRef("sim/cockpit2/switches/instrument_brightness_ratio", 5) ~= nil) then
             PNL_EL = get("sim/cockpit2/switches/instrument_brightness_ratio", 5)
         end
-
-
-
+        if (XPLMFindDataRef("thranda/electrical/AC_InverterSwitch") ~= nil) then -- Inverter
+            INV = get("thranda/electrical/AC_InverterSwitch")
+        end
+        if (XPLMFindDataRef("thranda/views/WindowRefl") ~= nil) then -- Window Reflections
+            WREFL = get("thranda/views/WindowRefl") 
+        end
+        if (XPLMFindDataRef("thranda/views/InstRefl") ~= nil) then -- Instrument Reflections
+            IREFL = get("thranda/views/InstRefl") 
+        end
+        if (XPLMFindDataRef("thranda/views/staticelements") ~= nil) then -- Pitot Covers etc.
+            COVERS = get("thranda/views/staticelements") 
+        end
+        if (XPLMFindDataRef("thranda/actuators/VoltSelAct") ~= nil) then -- Volt Meter
+            VOLT_SEL = get("thranda/actuators/VoltSelAct") 
+        end
+        if (XPLMFindDataRef("thranda/annunciators/AnnunTestKnob") ~= nil) then -- Annun Test
+            TEST_SEL = get("thranda/annunciators/AnnunTestKnob") 
+        end
+        if (XPLMFindDataRef("thranda/fuel/CrossFeedLRSw") ~= nil) then
+            FUEL_SEL = get("thranda/fuel/CrossFeedLRSw") 
+        end
+        if (XPLMFindDataRef("thranda/lights/RecogLights") ~= nil) then
+            RECOG = get("thranda/lights/RecogLights") 
+        end
+        if (XPLMFindDataRef("thranda/instruments/BaroUnits") ~= nil) then
+            BARO_UNIT = get("thranda/instruments/BaroUnits") 
+        end
+        if (XPLMFindDataRef("thranda/knobs/N1_Dial") ~= nil) then
+            N1_DIAL = get("thranda/knobs/N1_Dial") 
+        end
+        if (XPLMFindDataRef("thranda/lights/LandingLightLeft") ~= nil) then
+            L_LND = get("thranda/lights/LandingLightLeft") 
+        end
+        if (XPLMFindDataRef("thranda/lights/LandingLightRight") ~= nil) then
+            R_LND = get("thranda/lights/LandingLightRight") 
+        end
+        if (XPLMFindDataRef("thranda/gear/AntiSkid") ~= nil) then
+            ASKID = get("thranda/gear/AntiSkid") 
+        end
+        if (XPLMFindDataRef("thranda/BT", 22) ~= nil) then
+            TEMP_MAN = get("thranda/BT", 22) 
+        end
+        if (XPLMFindDataRef("thranda/pneumatic/CabinTempAct") ~= nil) then
+            TEMP_CTRL = get("thranda/pneumatic/CabinTempAct") 
+        end
+        if (XPLMFindDataRef("thranda/pneumatic/PressureSource") ~= nil) then
+            PRES_SRC = get("thranda/pneumatic/PressureSource") 
+        end
+        if (XPLMFindDataRef("thranda/pneumatic/AirFlowDistribution") ~= nil) then
+            FLOW_DIST = get("thranda/pneumatic/AirFlowDistribution") 
+        end
+        if (XPLMFindDataRef("thranda/ice/WindshieldIceL") ~= nil) then
+            L_WS = get("thranda/ice/WindshieldIceL") 
+        end
+        if (XPLMFindDataRef("thranda/ice/WindshieldIceR") ~= nil) then
+            R_WS = get("thranda/ice/WindshieldIceR") 
+        end
+        if (XPLMFindDataRef("thranda/BT", 23) ~= nil) then
+            CAB_FAN1 = get("thranda/BT", 23) 
+        end
+        if (XPLMFindDataRef("thranda/pneumatic/CabinFan") ~= nil) then
+            CAB_FAN2 = get("thranda/pneumatic/CabinFan") 
+        end
+        if (XPLMFindDataRef("thranda/BT", 24) ~= nil) then
+            CAB_FOG = get("thranda/BT", 24) 
+        end
+        if (XPLMFindDataRef("thranda/pneumatic/AC") ~= nil) then
+            AC = get("thranda/pneumatic/AC") 
+        end
+        if (XPLMFindDataRef("thranda/pneumatic/BlowerIntensity") ~= nil) then
+            BLWR = get("thranda/pneumatic/BlowerIntensity") 
+        end
+        if (XPLMFindDataRef("thranda/pneumatic/CabinVent") ~= nil) then
+            CAB_VNT = get("thranda/pneumatic/CabinVent") 
+        end
     else
         print("PXP Skipping Carenado Citation II Ref's")
     end
@@ -774,60 +918,6 @@ function pxpCompilePersistenceData()
         print("PXP Skipping Carenado Saab 340 Ref's")
     end
 
-    
-    --[[ Deafulat Datarefs
- 
- 
-
-    
-
-
-    
-    
-    
-
- 
-    -- local INSTR_LTS = get("sim/cockpit2/switches/instrument_brightness_ratio")
-    
-
-    
-
- 
-
-
-    
-    
-
-
-
-
-    local INV = get("thranda/electrical/AC_InverterSwitch") -- Inverter Switch
-    local RYOKE = get("thranda/cockpit/actuators/HideYokeR") -- Right Yoke
-    local WREFL = get("thranda/views/WindowRefl") -- Window Reflections
-    local IREFL = get("thranda/views/InstRefl") -- Instrument Reflections
-    local COVERS = get("thranda/views/staticelements") -- Pitot Covers
-    local VOLT_SEL = get("thranda/actuators/VoltSelAct") -- Volt Selector
-    local TEST_SEL = get("thranda/annunciators/AnnunTestKnob") -- Test Selector
-    local FUEL_SEL = get("thranda/fuel/CrossFeedLRSw")
-    local RECOG = get("thranda/lights/RecogLights")
-    local BARO_UNIT = get("thranda/instruments/BaroUnits")
-    local N1_Dial = get("thranda/knobs/N1_Dial")
-    local L_LND = get("thranda/lights/LandingLightLeft")
-    local R_LND = get("thranda/lights/LandingLightRight")
-    local ASKID = get("thranda/gear/AntiSkid")
-    local TEMP_MAN = get("thranda/BT", 23)
-    local TEMP_CTRL = get("thranda/pneumatic/CabinTempAct")
-    local PRES_SRC = get("thranda/pneumatic/PressureSource")
-    local FLOW_DIST = get("thranda/pneumatic/AirFlowDistribution")
-    local L_WS = get("thranda/ice/WindshieldIceL")
-    local R_WS = get("thranda/ice/WindshieldIceR")
-    local CAB_FAN1 = get("thranda/BT", 23)
-    local CAB_FOG = get("thranda/BT", 24)
-    local AC = get("thranda/pneumatic/AC")
-    local BLWR = get("thranda/pneumatic/BlowerIntensity")
-    local CAB_VNT = get("thranda/pneumatic/CabinVent")
-    local CAB_FAN2 = get("thranda/pneumatic/CabinFan")
-]]
 
     pxpSwitchData = {
         PersistenceData = {
@@ -909,6 +999,8 @@ function pxpCompilePersistenceData()
             IGN2 = IGN2,
             MAG1 = MAG1,
             MAG2 = MAG2,
+            ENG1_RUN = ENG1_RUN,
+            ENG2_RUN = ENG2_RUN,
 
             -- Fuel
             BOOST_PMP1 = BOOST_PMP1,
@@ -966,6 +1058,32 @@ function pxpCompilePersistenceData()
             PNL_CTR = PNL_CTR,
             PNL_RT = PNL_RT,
             PNL_EL = PNL_EL,
+            INV = INV,
+            WREFL = WREFL,
+            IREFL = IREFL,
+            COVERS = COVERS,
+            VOLT_SEL = VOLT_SEL,
+            TEST_SEL = TEST_SEL,
+            FUEL_SEL = FUEL_SEL,
+            RECOG = RECOG,
+            BARO_UNIT = BARO_UNIT,
+            N1_DIAL = N1_DIAL,
+            L_LND = L_LND,
+            R_LND = R_LND,
+            ASKID = ASKID,
+            TEMP_MAN = TEMP_MAN,
+            TEMP_CTRL = TEMP_CTRL,
+            PRES_SRC = PRES_SRC,
+            FLOW_DIST = FLOW_DIST,
+            L_WS = L_WS,
+            R_WS = R_WS,
+            CAB_FAN1 = CAB_FAN1,
+            CAB_FAN2 = CAB_FAN2,
+            CAB_FOG = CAB_FOG,
+            AC = AC,
+            BLWR = BLWR,
+            CAB_VNT = CAB_VNT,
+            
 
             -- Carenado PC12
             LVIS = LVIS,
@@ -985,54 +1103,6 @@ function pxpCompilePersistenceData()
             CAB_PRESS_CTL = CAB_PRESS_CTL,
             CTOT_PWR = CTOT_PWR,
             CTOT = CTOT,
-
-
-            --[[
-                
-            RYOKE = RYOKE,
-            LARM = LARM,
-            RARM = RARM,
-            INV = INV,
-            WREFL = WREFL,
-            IREFL = IREFL,
-            COVERS = COVERS,
-
-            
-            VOLT_SEL = VOLT_SEL,
-            TEST_SEL = TEST_SEL,
-            
-            
-            
-            
-            FUEL_SEL = FUEL_SEL,
-            RECOG = RECOG,
-            
-            BARO_UNIT = BARO_UNIT,
-            N1_Dial = N1_Dial,
-            
-            
-            L_LND = L_LND,
-            R_LND = R_LND,
-            ASKID = ASKID,
-            PRESS_VVI = PRESS_VVI,
-            CAB_ALT = CAB_ALT,
-            TEMP_MAN = TEMP_MAN,
-            TEMP_CTRL = TEMP_CTRL,
-            PRES_SRC = PRES_SRC,
-            FLOW_DIST = FLOW_DIST,
-            
-            
-            L_WS = L_WS,
-            R_WS = R_WS,
-            CAB_FAN1 = CAB_FAN1,
-            CAB_FOG = CAB_FOG,
-            AC = AC,
-            BLWR = BLWR,
-            CAB_VNT = CAB_VNT,
-            CAB_FAN2 = CAB_FAN2,
-            
-            ENG1_RUN = ENG1_RUN,
-            ENG2_RUN = ENG2_RUN,]]
 
         }
     }
@@ -1646,9 +1716,143 @@ function pxpParsePersistenceData()
                     set_array("sim/cockpit2/switches/instrument_brightness_ratio", 5, pxpSwitchData.PersistenceData.PNL_EL)
                 end
             end
-
-
-
+            if (XPLMFindDataRef("thranda/electrical/AC_InverterSwitch") ~= nil) then
+                if pxpSwitchData.PersistenceData.INV ~= nil then
+                    set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV)
+                end
+            end
+            if (XPLMFindDataRef("thranda/views/WindowRefl") ~= nil) then
+                if pxpSwitchData.PersistenceData.WREFL ~= nil then
+                    set("thranda/views/WindowRefl", pxpSwitchData.PersistenceData.WREFL)
+                end
+            end
+            if (XPLMFindDataRef("thranda/views/InstRefl") ~= nil) then
+                if pxpSwitchData.PersistenceData.IREFL ~= nil then
+                    set("thranda/views/InstRefl", pxpSwitchData.PersistenceData.IREFL)
+                end
+            end
+            if (XPLMFindDataRef("thranda/views/staticelements") ~= nil) then
+                if pxpSwitchData.PersistenceData.COVERS ~= nil then
+                    set("thranda/views/staticelements", pxpSwitchData.PersistenceData.COVERS)
+                end
+            end
+            if (XPLMFindDataRef("thranda/actuators/VoltSelAct") ~= nil) then
+                if pxpSwitchData.PersistenceData.VOLT_SEL ~= nil then
+                    set("thranda/actuators/VoltSelAct", pxpSwitchData.PersistenceData.VOLT_SEL)
+                end
+            end
+            if (XPLMFindDataRef("thranda/annunciators/AnnunTestKnob") ~= nil) then
+                if pxpSwitchData.PersistenceData.TEST_SEL ~= nil then
+                    set("thranda/annunciators/AnnunTestKnob", pxpSwitchData.PersistenceData.TEST_SEL)
+                end
+            end
+            if (XPLMFindDataRef("thranda/fuel/CrossFeedLRSw") ~= nil) then
+                if pxpSwitchData.PersistenceData.FUEL_SEL ~= nil then
+                    set("thranda/fuel/CrossFeedLRSw", pxpSwitchData.PersistenceData.FUEL_SEL)
+                end
+            end
+            if (XPLMFindDataRef("thranda/lights/RecogLights") ~= nil) then
+                if pxpSwitchData.PersistenceData.RECOG ~= nil then
+                    set("thranda/lights/RecogLights", pxpSwitchData.PersistenceData.RECOG)
+                end
+            end
+            if (XPLMFindDataRef("thranda/instruments/BaroUnits") ~= nil) then
+                if pxpSwitchData.PersistenceData.BARO_UNIT ~= nil then
+                    set("thranda/instruments/BaroUnits", pxpSwitchData.PersistenceData.BARO_UNIT)
+                end
+            end
+            if (XPLMFindDataRef("thranda/knobs/N1_Dial") ~= nil) then
+                if pxpSwitchData.PersistenceData.N1_DIAL ~= nil then
+                    set("thranda/knobs/N1_Dial", pxpSwitchData.PersistenceData.N1_DIAL)
+                end
+            end
+            if (XPLMFindDataRef("thranda/lights/LandingLightLeft") ~= nil) then
+                if pxpSwitchData.PersistenceData.L_LND ~= nil then
+                    set("thranda/lights/LandingLightLeft", pxpSwitchData.PersistenceData.L_LND)
+                end
+            end
+            if (XPLMFindDataRef("thranda/lights/LandingLightRight") ~= nil) then
+                if pxpSwitchData.PersistenceData.R_LND ~= nil then
+                    set("thranda/lights/LandingLightRight", pxpSwitchData.PersistenceData.R_LND)
+                end
+            end
+            if (XPLMFindDataRef("thranda/gear/AntiSkid") ~= nil) then
+                if pxpSwitchData.PersistenceData.ASKID ~= nil then
+                    set("thranda/gear/AntiSkid", pxpSwitchData.PersistenceData.ASKID)
+                end
+            end
+            if (XPLMFindDataRef( "thranda/BT", 22) ~= nil) then
+                if pxpSwitchData.PersistenceData.TEMP_MAN ~= nil then
+                    set_array( "thranda/BT", 22, pxpSwitchData.PersistenceData.TEMP_MAN)
+                end
+            end
+            if (XPLMFindDataRef("thranda/pneumatic/CabinTempAct") ~= nil) then
+                if pxpSwitchData.PersistenceData.TEMP_CTRL ~= nil then
+                    set("thranda/pneumatic/CabinTempAct", pxpSwitchData.PersistenceData.TEMP_CTRL)
+                end
+            end
+            if (XPLMFindDataRef("thranda/pneumatic/PressureSource") ~= nil) then
+                if pxpSwitchData.PersistenceData.PRES_SRC ~= nil then
+                    set("thranda/pneumatic/PressureSource", pxpSwitchData.PersistenceData.PRES_SRC)
+                end
+            end
+            if (XPLMFindDataRef("thranda/pneumatic/AirFlowDistribution") ~= nil) then
+                if pxpSwitchData.PersistenceData.FLOW_DIST ~= nil then
+                    set("thranda/pneumatic/AirFlowDistribution", pxpSwitchData.PersistenceData.FLOW_DIST)
+                end
+            end
+            if (XPLMFindDataRef("thranda/ice/WindshieldIceL") ~= nil) then
+                if pxpSwitchData.PersistenceData.L_WS ~= nil then
+                    set("thranda/ice/WindshieldIceL", pxpSwitchData.PersistenceData.L_WS)
+                end
+            end
+            if (XPLMFindDataRef("thranda/ice/WindshieldIceR") ~= nil) then
+                if pxpSwitchData.PersistenceData.R_WS ~= nil then
+                    set("thranda/ice/WindshieldIceR", pxpSwitchData.PersistenceData.R_WS)
+                end
+            end
+            if (XPLMFindDataRef( "thranda/BT", 23) ~= nil) then
+                if pxpSwitchData.PersistenceData.CAB_FAN1 ~= nil then
+                    set_array( "thranda/BT", 23, pxpSwitchData.PersistenceData.CAB_FAN1)
+                end
+            end
+            if (XPLMFindDataRef("thranda/pneumatic/CabinFan") ~= nil) then
+                if pxpSwitchData.PersistenceData.CAB_FAN2 ~= nil then
+                    set("thranda/pneumatic/CabinFan", pxpSwitchData.PersistenceData.CAB_FAN2)
+                end
+            end
+            if (XPLMFindDataRef( "thranda/BT", 24) ~= nil) then
+                if pxpSwitchData.PersistenceData.CAB_FOG ~= nil then
+                    set_array( "thranda/BT", 24, pxpSwitchData.PersistenceData.CAB_FOG)
+                end
+            end
+            if (XPLMFindDataRef("thranda/pneumatic/AC") ~= nil) then
+                if pxpSwitchData.PersistenceData.AC ~= nil then
+                    set("thranda/pneumatic/AC", pxpSwitchData.PersistenceData.AC)
+                end
+            end
+            if (XPLMFindDataRef("thranda/pneumatic/BlowerIntensity") ~= nil) then
+                if pxpSwitchData.PersistenceData.BLWR ~= nil then
+                    set("thranda/pneumatic/BlowerIntensity", pxpSwitchData.PersistenceData.BLWR)
+                end
+            end
+            if (XPLMFindDataRef("thranda/pneumatic/CabinVent") ~= nil) then
+                if pxpSwitchData.PersistenceData.CAB_VNT ~= nil then
+                    set("thranda/pneumatic/CabinVent", pxpSwitchData.PersistenceData.CAB_VNT)
+                end
+            end
+            if ENG1_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
+                if (XPLMFindDataRef("thranda/cockpit/ThrottleLatchAnim_0") ~= nil) then
+                    set("thranda/cockpit/ThrottleLatchAnim_0", 0.5)
+                    print("Command Shut 1")
+                end
+            end
+            if ENG2_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
+                if (XPLMFindDataRef("thranda/cockpit/ThrottleLatchAnim_1") ~= nil) then
+                    set("thranda/cockpit/ThrottleLatchAnim_1", 0.5)
+                    print("Command Shut 2")
+                end
+            end
         else
             print("PXP Skipping Carenado Citation II Ref's")
         end
@@ -1799,74 +2003,7 @@ function pxpParsePersistenceData()
             print("PXP Skipping Carenado Saab 340 Ref's")
         end 
 
---[[
-        set("thranda/electrical/AC_InverterSwitch", pxpSwitchData.PersistenceData.INV) -- Inverter Switch
 
-        set("thranda/cockpit/actuators/HideYokeR", pxpSwitchData.PersistenceData.RYOKE) -- Right Yoke
-        
-        
-        set("thranda/views/WindowRefl", pxpSwitchData.PersistenceData.WREFL) -- Window Reflections
-        set("thranda/views/InstRefl", pxpSwitchData.PersistenceData.IREFL) -- Instrument Reflections
-        set("thranda/views/staticelements", pxpSwitchData.PersistenceData.COVERS) -- Pitot Covers
-        
-        
-
-        set("thranda/actuators/VoltSelAct", pxpSwitchData.PersistenceData.VOLT_SEL) -- Volt Selector
-        set("thranda/annunciators/AnnunTestKnob", pxpSwitchData.PersistenceData.TEST_SEL) -- Test Selector
-
-
-       
-
-
-        
-        set("thranda/fuel/CrossFeedLRSw", pxpSwitchData.PersistenceData.FUEL_SEL)
-        set("thranda/lights/RecogLights", pxpSwitchData.PersistenceData.RECOG)
-
-        
-
-        set("thranda/instruments/BaroUnits", pxpSwitchData.PersistenceData.BARO_UNIT)
-
-        set("thranda/knobs/N1_Dial", pxpSwitchData.PersistenceData.N1_Dial)
-        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 1, pxpSwitchData.PersistenceData.FLOOD_LT)
-        set_array("sim/cockpit2/switches/generic_lights_switch", 30 ,pxpSwitchData.PersistenceData.PNL_LT)
-        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 2, pxpSwitchData.PersistenceData.PNL_LFT , 3)
-        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 3, pxpSwitchData.PersistenceData.PNL_CTR , 4)
-        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 4, pxpSwitchData.PersistenceData.PNL_RT , 5)
-        set_array("sim/cockpit2/switches/instrument_brightness_ratio", 5, pxpSwitchData.PersistenceData.PNL_EL , 6)
-        set("sim/cockpit/switches/fasten_seat_belts", pxpSwitchData.PersistenceData.ST_BLT)
-        set("thranda/lights/LandingLightLeft", pxpSwitchData.PersistenceData.L_LND)
-        set("thranda/lights/LandingLightRight", pxpSwitchData.PersistenceData.R_LND)
-        set("thranda/gear/AntiSkid", pxpSwitchData.PersistenceData.ASKID)
-
-        set("sim/cockpit2/pressurization/actuators/cabin_vvi_fpm", pxpSwitchData.PersistenceData.PRESS_VVI)
-        set("sim/cockpit/pressure/cabin_altitude_set_m_msl", pxpSwitchData.PersistenceData.CAB_ALT)
-        set_array("thranda/BT", 22, pxpSwitchData.PersistenceData.TEMP_MAN)
-        set("thranda/pneumatic/CabinTempAct", pxpSwitchData.PersistenceData.TEMP_CTRL)
-        set("thranda/pneumatic/PressureSource", pxpSwitchData.PersistenceData.PRES_SRC)
-        set("thranda/pneumatic/AirFlowDistribution", pxpSwitchData.PersistenceData.FLOW_DIST)
-
-        
-
-
-        set("thranda/ice/WindshieldIceL", pxpSwitchData.PersistenceData.L_WS)
-        set("thranda/ice/WindshieldIceR", pxpSwitchData.PersistenceData.R_WS)
-        set_array("thranda/BT", 23, pxpSwitchData.PersistenceData.CAB_FAN1)
-        set_array("thranda/BT", 24, pxpSwitchData.PersistenceData.CAB_FOG)
-        set("thranda/pneumatic/AC", pxpSwitchData.PersistenceData.AC)
-        set("thranda/pneumatic/BlowerIntensity", pxpSwitchData.PersistenceData.BLWR)
-        set("thranda/pneumatic/CabinVent", pxpSwitchData.PersistenceData.CAB_VNT)
-        set("thranda/pneumatic/CabinFan", pxpSwitchData.PersistenceData.CAB_FAN2)
-
-        
-
-        if ENG1_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
-            set("thranda/cockpit/ThrottleLatchAnim_0", 0.5)
-            print("Command Shut 1")
-        end
-        if ENG2_RUN == 1 and pxpSwitchData.PersistenceData.ENG1_RUN == 0 then
-            set("thranda/cockpit/ThrottleLatchAnim_1", 0.5)
-            print("Command Shut 2")
-        end]]
         print("PersistenceXP Panel State Loaded")
     end
 end
