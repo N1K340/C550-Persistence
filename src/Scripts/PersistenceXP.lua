@@ -719,6 +719,12 @@ function pxpCompilePersistenceData()
         if (XPLMFindDataRef("thranda/cockpit/ManualOverride") ~= nil) then
             CAB_PRESS_CTL = get("thranda/cockpit/ManualOverride")
         end
+        if (XPLMFindDataRef("thranda/engine/TorqueLimit") ~= nil) then
+            CTOT_PWR = get("thranda/engine/TorqueLimit")
+        end
+        if (XPLMFindDataRef("thranda/engine/CTOT") ~= nil) then
+            CTOT = get("thranda/engine/CTOT")
+        end
     else
         print("PXP Skipping Carenado Saab 340 Ref's")
     end
@@ -930,6 +936,8 @@ function pxpCompilePersistenceData()
             EMG_CVR = EMG_CVR,
             EMG = EMG,
             CAB_PRESS_CTL = CAB_PRESS_CTL,
+            CTOT_PWR = CTOT_PWR,
+            CTOT = CTOT,
 
 
             --[[
@@ -1677,6 +1685,16 @@ function pxpParsePersistenceData()
         if (XPLMFindDataRef("thranda/cockpit/ManualOverride") ~= nil) then
             if pxpSwitchData.PersistenceData.CAB_PRESS_CTL ~= nil then
                 set("thranda/cockpit/ManualOverride", pxpSwitchData.PersistenceData.CAB_PRESS_CTL)
+            end
+        end
+        if (XPLMFindDataRef("thranda/engine/TorqueLimit") ~= nil) then
+            if pxpSwitchData.PersistenceData.CTOT_PWR ~= nil then
+                set("thranda/engine/TorqueLimit", pxpSwitchData.PersistenceData.CTOT_PWR)
+            end
+        end
+        if (XPLMFindDataRef("thranda/engine/CTOT") ~= nil) then
+            if pxpSwitchData.PersistenceData.CTOT ~= nil then
+                set("thranda/engine/CTOT", pxpSwitchData.PersistenceData.CTOT)
             end
         end
         else
