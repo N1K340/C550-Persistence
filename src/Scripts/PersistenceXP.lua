@@ -4,6 +4,10 @@ Objective:
     - Record switch states on exit, reload on loade
     - Record position and reload
     - Isolate to specific airframe variations (rego?)
+
+Aircraft With Custom Datarefs
+    - Carenado Citation II
+
     ]]
 
 
@@ -696,6 +700,11 @@ function pxpCompilePersistenceData()
 
     -- Carenado C208 HD
     local CARGOPOD = nil
+    local STB_PWR = nil
+    local STRT1 = nil
+    local WING_LT = nil
+    local PNL_LWR = nil
+    local ANNUN_DIM = nil
 
     -- Carenado SF34
     local IGNL_CVR = nil
@@ -725,6 +734,7 @@ function pxpCompilePersistenceData()
     local R_WS = nil
     local CAB_FAN1 = nil
     local CAB_FAN2 = nil
+    local CAB_FAN3 = nil
     local CAB_FOG = nil
     local AC = nil
     local BLWR = nil
@@ -885,9 +895,64 @@ function pxpCompilePersistenceData()
         if (XPLMFindDataRef("Carenado/Switch/Dummy/Dummy2") ~= nil) then
             RYOKE = get("Carenado/Switch/Dummy/Dummy2")
         end
+        if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestLR") ~= nil) then
+            LARM = get("thranda/cockpit/animations/ArmRestLR")
+        end
+        if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestRL") ~= nil) then
+            RARM = get("thranda/cockpit/animations/ArmRestRL")
+        end
         if (XPLMFindDataRef("Carenado/visibilities/CargoPod") ~= nil) then
             CARGOPOD = get("Carenado/visibilities/CargoPod")
         end
+        if (XPLMFindDataRef("com/dkmp/FuelBoost") ~= nil) then
+            BOOST_PMP1 = get("com/dkmp/FuelBoost")
+        end
+        if (XPLMFindDataRef("com/dkmp/StbyPwr") ~= nil) then
+            STB_PWR = get("com/dkmp/StbyPwr")
+        end
+        if (XPLMFindDataRef("com/dkmp/Ignition") ~= nil) then
+            IGN1 = get("com/dkmp/Ignition")
+        end
+        if (XPLMFindDataRef("com/dkmp/Starter") ~= nil) then
+            STRT1 = get("com/dkmp/Starter")
+        end
+        if (XPLMFindDataRef("com/dkmp/AmpsVoltsSwitch") ~= nil) then
+            DCAMP = get("com/dkmp/AmpsVoltsSwitch")
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/generic_lights_switch", 30) ~= nil) then
+            DCAMP = get("sim/cockpit2/switches/generic_lights_switch", 30)
+        end
+        if (XPLMFindDataRef("com/dkmp/Ventilate") ~= nil) then
+            AC = get("com/dkmp/Ventilate")
+        end
+        if (XPLMFindDataRef("com/dkmp/ACFansLeft") ~= nil) then
+            CAB_FAN1 = get("com/dkmp/ACFansLeft")
+        end
+        if (XPLMFindDataRef("com/dkmp/ACFansRight") ~= nil) then
+            CAB_FAN2 = get("com/dkmp/ACFansRight")
+        end
+        if (XPLMFindDataRef("com/dkmp/ACFansAft") ~= nil) then
+            CAB_FAN3 = get("com/dkmp/ACFansAft")
+        end
+        if (XPLMFindDataRef("com/dkmp/TempHot") ~= nil) then
+            TEMP_CTRL = get("com/dkmp/TempHot")
+        end
+        if (XPLMFindDataRef("com/dkmp/PanelLit") ~= nil) then
+            PNL_LT = get("com/dkmp/PanelLit")
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/panel_brightness_ratio", 2) ~= nil) then
+            FLOOD_LT = get("sim/cockpit2/switches/panel_brightness_ratio", 2)
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/panel_brightness_ratio", 1) ~= nil) then
+            PNL_LWR = get("sim/cockpit2/switches/panel_brightness_ratio", 1)
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/panel_brightness_ratio", 0) ~= nil) then
+            PNL_RT = get("sim/cockpit2/switches/panel_brightness_ratio", 0)
+        end
+        if (XPLMFindDataRef("com/dkmp/AnnunLITsw") ~= nil) then
+            PNL_RT = get("com/dkmp/AnnunLITsw")
+        end
+        
     else
         print("PXP Skipping Carenado C208 HD Ref's")
     end
@@ -1102,6 +1167,7 @@ function pxpCompilePersistenceData()
             R_WS = R_WS,
             CAB_FAN1 = CAB_FAN1,
             CAB_FAN2 = CAB_FAN2,
+            CAB_FAN3 = CAB_FAN3,
             CAB_FOG = CAB_FOG,
             AC = AC,
             BLWR = BLWR,
@@ -1118,6 +1184,11 @@ function pxpCompilePersistenceData()
 
             -- Carenado C208
             CARGOPOD = CARGOPOD,
+            STRT1 = STRT1,
+            STB_PWR = STB_PWR,
+            WING_LT = WING_LT,
+            PNL_LWR = PNL_LWR,
+            ANNUN_DIM = ANNUN_DIM,
 
             -- Careando Saab 340
             IGNL_CVR = IGNL_CVR,
@@ -1195,7 +1266,7 @@ function pxpParsePersistenceData()
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/landing_lights_on", 1) ~= nil) then
-            if pxpSwitchData.PersistenceData.BAT ~= nil then
+            if pxpSwitchData.PersistenceData.LNDLIGHT ~= nil then
                 set_array("sim/cockpit2/switches/landing_lights_on", 1, pxpSwitchData.PersistenceData.LNDLIGHT)
             end
         end
@@ -1207,6 +1278,16 @@ function pxpParsePersistenceData()
         if (XPLMFindDataRef("sim/cockpit2/switches/landing_lights_on", 3) ~= nil) then
             if pxpSwitchData.PersistenceData.LNDLIGHT ~= nil then
                 set_array("sim/cockpit2/switches/landing_lights_on", 3, pxpSwitchData.PersistenceData.LNDLIGHT)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/landing_lights_switch", 1) ~= nil) then
+            if pxpSwitchData.PersistenceData.LNDLIGHT ~= nil then
+                set_array("sim/cockpit2/switches/landing_lights_switch", 1, pxpSwitchData.PersistenceData.LNDLIGHT)
+            end
+        end
+        if (XPLMFindDataRef("sim/cockpit2/switches/landing_lights_switch", 2) ~= nil) then
+            if pxpSwitchData.PersistenceData.LNDLIGHT ~= nil then
+                set_array("sim/cockpit2/switches/landing_lights_switch", 2, pxpSwitchData.PersistenceData.LNDLIGHT)
             end
         end
         if (XPLMFindDataRef("sim/cockpit2/switches/taxi_light_on") ~= nil) then
@@ -1952,13 +2033,104 @@ function pxpParsePersistenceData()
                     set("Carenado/Switch/Dummy/Dummy2", pxpSwitchData.PersistenceData.RYOKE)
                 end
             end
+            if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestLR") ~= nil) then
+                if pxpSwitchData.PersistenceData.LARM ~= nil then
+                    set("thranda/cockpit/animations/ArmRestLR", pxpSwitchData.PersistenceData.LARM) -- Left Arm Rests
+                end
+            end
+            if (XPLMFindDataRef("thranda/cockpit/animations/ArmRestRL") ~= nil) then
+                if pxpSwitchData.PersistenceData.RARM ~= nil then
+                    set("thranda/cockpit/animations/ArmRestRL", pxpSwitchData.PersistenceData.RARM) -- Right Arm Rest
+                end
+            end
             if (XPLMFindDataRef("Carenado/visibilities/CargoPod") ~= nil) then
                 if pxpSwitchData.PersistenceData.CARGOPOD ~= nil then
                     set("Carenado/visibilities/CargoPod", pxpSwitchData.PersistenceData.CARGOPOD)
                 end
             end
+            if (XPLMFindDataRef("com/dkmp/FuelBoost") ~= nil) then
+                if pxpSwitchData.PersistenceData.BOOST_PMP1 ~= nil then
+                    set("com/dkmp/FuelBoost", pxpSwitchData.PersistenceData.BOOST_PMP1)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/StbyPwr") ~= nil) then
+                if pxpSwitchData.PersistenceData.STB_PWR ~= nil then
+                    set("com/dkmp/StbyPwr", pxpSwitchData.PersistenceData.STB_PWR)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/Ignition") ~= nil) then
+                if pxpSwitchData.PersistenceData.IGN1 ~= nil then
+                    set("com/dkmp/Ignition", pxpSwitchData.PersistenceData.IGN1)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/Starter") ~= nil) then
+                if pxpSwitchData.PersistenceData.STRT1 ~= nil then
+                    set("com/dkmp/Starter", pxpSwitchData.PersistenceData.STRT1)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/AmpsVoltsSwitch") ~= nil) then
+                if pxpSwitchData.PersistenceData.STRT1 ~= nil then
+                    set("com/dkmp/AmpsVoltsSwitch", pxpSwitchData.PersistenceData.STRT1)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/generic_lights_switch", 30) ~= nil) then
+                if pxpSwitchData.PersistenceData.WING_LT ~= nil then
+                    set_array("sim/cockpit2/switches/generic_lights_switch", 30, pxpSwitchData.PersistenceData.WING_LT)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/Ventilate") ~= nil) then
+                if pxpSwitchData.PersistenceData.AC ~= nil then
+                    set("com/dkmp/Ventilate", pxpSwitchData.PersistenceData.AC)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/ACFansLeft") ~= nil) then
+                if pxpSwitchData.PersistenceData.CAB_FAN1 ~= nil then
+                    set("com/dkmp/ACFansLeft", pxpSwitchData.PersistenceData.CAB_FAN1)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/ACFansRight") ~= nil) then
+                if pxpSwitchData.PersistenceData.CAB_FAN2 ~= nil then
+                    set("com/dkmp/ACFansRight", pxpSwitchData.PersistenceData.CAB_FAN2)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/ACFansAft") ~= nil) then
+                if pxpSwitchData.PersistenceData.CAB_FAN3 ~= nil then
+                    set("com/dkmp/ACFansAft", pxpSwitchData.PersistenceData.CAB_FAN3)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/TempHot") ~= nil) then
+                if pxpSwitchData.PersistenceData.TEMP_CTRL ~= nil then
+                    set("com/dkmp/TempHot", pxpSwitchData.PersistenceData.TEMP_CTRL)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/PanelLit") ~= nil) then
+                if pxpSwitchData.PersistenceData.PNL_LT ~= nil then
+                    set("com/dkmp/PanelLit", pxpSwitchData.PersistenceData.PNL)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/panel_brightness_ratio", 2) ~= nil) then
+                if pxpSwitchData.PersistenceData.FLOOD_LT ~= nil then
+                    set_array("sim/cockpit2/switches/panel_brightness_ratio", 2, pxpSwitchData.PersistenceData.FLOOD_LT)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/panel_brightness_ratio", 1) ~= nil) then
+                if pxpSwitchData.PersistenceData.PNL_LWR ~= nil then
+                    set_array("sim/cockpit2/switches/panel_brightness_ratio", 1, pxpSwitchData.PersistenceData.PNL_LWR)
+                end
+            end
+            if (XPLMFindDataRef("sim/cockpit2/switches/panel_brightness_ratio", 0) ~= nil) then
+                if pxpSwitchData.PersistenceData.PNL_RT ~= nil then
+                    set_array("sim/cockpit2/switches/panel_brightness_ratio", 0, pxpSwitchData.PersistenceData.PNL_RT)
+                end
+            end
+            if (XPLMFindDataRef("com/dkmp/AnnunLITsw") ~= nil) then
+                if pxpSwitchData.PersistenceData.ANNUN_DIM ~= nil then
+                    set_array("com/dkmp/AnnunLITsw", pxpSwitchData.PersistenceData.ANNUN_DIM)
+                end
+            end
+            
         else
-            print("PXP Skipping Carenado C208 HD Ref's")
+            print("PXP Skipping Carenado C208 Ref's")
         end
 
         -- Carenado SF34
