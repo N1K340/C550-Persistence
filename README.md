@@ -4,10 +4,10 @@ Persistence for XP11 Aircraft
 Switch positions will be recorded when the Park Brake is set and the Left Engine is off.
 It will automatically reload the last saved switch positions 10 seconds after the sim loads.
 
-*In progress* Modifying to work with aircraft using default XP data and select third party aircraft using custom datarefs.
-
-Third Party Aircraft List
+Third Party Aircraft List:
 Carenado C550 Citation II
+Carenado C208 HD
+Carenado C208 EX
 
 
 Limitations
@@ -16,7 +16,8 @@ Third party aircraft require coding of any custom commands to have full save and
 
 
 Carenado C550 Citation II <br>
-I have not found a way to shut down the engines in a manner that will allow them to be restarted. If the scenario is loaded with engines running, the script will pull the power lever latches, however you will have to manually move the power levers to cutoff.
+I have not found a way to shut down the engines in a manner that will allow them to be restarted. 
+If the scenario is loaded with engines running, the script will pull the power lever latches, however you will have to manually move the power levers to cutoff.
 
 Prerequisite
 ============
