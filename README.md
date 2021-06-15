@@ -1,11 +1,21 @@
-# C550 Persistence
- Persistence for Carenado C550 Aircraft
+# PersistenceXP
+Persistence for XP11 Aircraft
 
 Switch positions will be recorded when the Park Brake is set and the Left Engine is off.
 It will automatically reload the last saved switch positions 10 seconds after the sim loads.
 
+*In progress* Modifying to work with aircraft using default XP data and select third party aircraft using custom datarefs.
+
+Third Party Aircraft List
+Carenado C550 Citation II
+
+
 Limitations
 ===========
+Third party aircraft require coding of any custom commands to have full save and reload functionality.
+
+
+Carenado C550 Citation II <br>
 I have not found a way to shut down the engines in a manner that will allow them to be restarted. If the scenario is loaded with engines running, the script will pull the power lever latches, however you will have to manually move the power levers to cutoff.
 
 Prerequisite
@@ -19,24 +29,16 @@ https://forums.x-plane.org/index.php?/files/file/38445-flywithlua-ng-next-genera
 Luna INI Parser (LIP) is included as an additional plugin module for use with FlyWithLua. This module allows for the saving and reading of settings data within LUA. It has been included in this package under the MIT Licence offered by creater Carreras Nicholas.
 https://github.com/Dynodzzo/Lua_INI_Parser
 
-This is a common plugin, it may already exist in your modules folder causing a prompt to overwrite.
 
 Installation
 ============
 
-Required File List:
-- Scripts
-    C550_Persistence.lua
-        
-- Modules
-    LIP.lua
-
-
 Copy the Scripts and Modules folders into the main folder of FlyWithLUA: 
 X-Plane 11 > Resources > plugins > FlyWithLua
+NOTE: LIP is a common module and may prompt to overwrite if it already exists in your instalation.
 
 Saving and loading switch positions can be manually accomplished by selecting the option in:
-Plugins > FlyWithLua > FlyWithLua Macros > C550 Persistence Save / Load
+Plugins > FlyWithLua > FlyWithLua Macros > PersistenceXP Save / Load
 
 
 Disclaimer / Feedback
@@ -55,5 +57,6 @@ This plugin is still a work in progress, to be considered as public beta. Errors
 
 Change Log
 ==========
-* V0.1 - Initial Beta Release.
+* V0.1 - Initial Beta Release
 * V1.0 - Initial Release
+* V2.0 - Recoded to work with all deafult aircraft and Carenado C550

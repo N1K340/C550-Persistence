@@ -9,6 +9,14 @@
         "LIP",
         "SCRIPT_DIRECTORY",
         "set",
-        "add_macro"
+        "add_macro",
+        "AIRCRAFT_PATH",
+        "get",
+        "set_array",
+        "ENG1_RUN",
+        "ENG2_RUN",
+        "PRK_BRK",
+        "SIM_TIME",
+        "do_sometimes"
     ]
 }
