@@ -4,7 +4,7 @@ Persistence for XP11 Aircraft
 Switch positions will be recorded when the Park Brake is set and the Left Engine is off.
 It will automatically reload the last saved switch positions 10 seconds after the sim loads.
 
-Third Party Aircraft List:<br>
+**Third Party Aircraft List:**<br>
 Carenado C550 Citation II<br>
 Carenado C208 HD<br>
 Carenado C208 EX<br>
