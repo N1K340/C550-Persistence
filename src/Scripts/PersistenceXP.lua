@@ -8,7 +8,7 @@ Aircraft With Custom Datarefs
     - Carenado Citation II
     - Carenado C208 HD
     - Carenado C208 EX
-
+    - Flight Factor 757
 
     ]]
 
@@ -1126,6 +1126,17 @@ function pxpCompilePersistenceData()
         print("PXP Skipping Carenado Saab 340 Ref's")
     end
 
+    -- FF 757
+    if loadedAircraft == '757-200_xp11.acf' or '757-300_xp11.acf' or '757-c32_xp11.acf' or '757-RF_xp11.acf' then
+        if (XPLMFindDataRef("anim/armCapt/1") ~= nil) then
+            LARM = get("anim/armCapt/1")
+        end
+        if (XPLMFindDataRef("anim/armFO/1") ~= nil) then
+            RARM = get("anim/armFO/1")
+        end
+    else
+        print("PXP Skipping FF 757 Ref's")
+    end
 
     pxpSwitchData = {
         PersistenceData = {
@@ -2522,6 +2533,23 @@ function pxpParsePersistenceData()
         else
             print("PXP Skipping Carenado Saab 340 Ref's")
         end 
+
+        -- FF 757
+    if loadedAircraft == '757-200_xp11.acf' then
+            if (XPLMFindDataRef("anim/armCapt/1") ~= nil) then
+                if pxpSwitchData.PersistenceData.LARM ~= nil then
+                    set("anim/armCapt/1", pxpSwitchData.PersistenceData.LARM)
+                end
+            end
+            if (XPLMFindDataRef("anim/armFO/1") ~= nil) then
+                if pxpSwitchData.PersistenceData.RARM ~= nil then
+                    set("anim/armFO/1", pxpSwitchData.PersistenceData.RARM)
+                end
+            end
+
+            else
+                print("PXP Skipping Flight Factor 757 Ref's")
+            end 
 
 
         print("PersistenceXP Panel State Loaded")
