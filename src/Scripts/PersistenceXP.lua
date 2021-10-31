@@ -592,7 +592,7 @@ end
         print("PXP Skipping Carenado PC12 Ref's")
     end
 
-    -- Carenado C208 HD / EX
+    -- Carenado C208 HD / E
 
     if loadedAircraft == 'C208B_EX_XP11.acf' or 'Car_C208B.acf' then
         if (XPLMFindDataRef("com/dkmp/cargopod") ~= nil) then
