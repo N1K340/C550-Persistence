@@ -8,11 +8,14 @@ Third Party Aircraft List:<br>
 Carenado C550 Citation II<br>
 Carenado C208 HD<br>
 Carenado C208 EX<br>
+Carenado PC12 <br>
+Carenado Saab 340-B <br>
 
 
 Limitations
 ===========
 Third party aircraft require coding of any custom commands to have full save and reload functionality.
+Capability is provided for basic X-Plane functions.
 
 
 Carenado C550 Citation II <br>
@@ -61,3 +64,4 @@ Change Log
 * V0.1 - Initial Beta Release
 * V1.0 - Initial Release
 * V2.0 - Recoded to work with all deafult aircraft and Carenado C550
+* V3.0 - Major rewrite to utilise aircraft as modules
