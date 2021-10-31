@@ -2,20 +2,30 @@
     Data file for Flight Factor 757
 ]]
 
+module(..., package.seeall)
+
 --Modules
 local LIP = require("LIP")
 
-local FF757 = {};
-
 local LARM = nil
+local RARM = nil
+local pxpSwitchData = {}
 
-function FF757.pxpCompile()
+
+function pxpCompile()
     if (XPLMFindDataRef("anim/armCapt/1") ~= nil) then
         LARM = get("anim/armCapt/1")
     end
     if (XPLMFindDataRef("anim/armFO/1") ~= nil) then
         RARM = get("anim/armFO/1")
     end
-end    
 
-return FF757;
+    pxp757Data = {
+        PersistenceData{
+            LARM = LARM;
+            RARM = RARM;
+        }
+    }
+    
+        return pxp757Data
+end    

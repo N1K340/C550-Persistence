@@ -17,7 +17,7 @@ Aircraft With Custom Datarefs
 -- Modules
 local LIP = require("LIP")
 local FF757 = require("PXP_FF757")
-local Defaults = require("PXP_Defaults")
+-- local Defaults = require("PXP_Defaults")
 require "graphics"
 
 -- Main Script Variables
@@ -203,6 +203,11 @@ add_macro("PersistenceXP View Settings", "pxpOpenSettings_wnd()", "pxpCloseSetti
 
 -- Main Function Call
 
+
+
+
+--[[
+
 function pxpAutoPersistenceData()
         if pxpScriptLoadTimer < 3 then
         pxpScriptLoadTimer = pxpScriptLoadTimer + 1
@@ -227,6 +232,7 @@ function pxpAutoPersistenceData()
 end
 
 do_sometimes("pxpAutoPersistenceData()")
+]]
 
 add_macro("PersistenceXP Save Panel State", "pxpCompilePersistenceData()")
 add_macro("PersistenceXP Load Panel State", "pxpParsePersistenceData()")
@@ -241,10 +247,14 @@ function pxpWritePersistenceData(pxpSwitchData)
 end
 
 function pxpCompilePersistenceData()
-
-    if useDefaults == true then
-        Defaults.pxpCompile_Defaults()
+    if loadedAircraft == '757-200_xp11.acf' then
+        FF757.pxpCompile()
+        pxpSwitchData = FF757.pxp757Data
     end
+    pxpWritePersistenceData(pxpSwitchData)
+    print("PersistenceXP Panel data saved to " .. AIRCRAFT_PATH .. "pxpPersistence.ini")
+end
+--[[
 
     -- Deafult Electrical
     local BAT = nil
@@ -2184,7 +2194,7 @@ function pxpParsePersistenceData()
 
         print("PersistenceXP Panel State Loaded")
     end
-end
+end ]]
 
 
 -- Baro Sync Side Program
